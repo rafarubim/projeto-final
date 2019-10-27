@@ -7,7 +7,7 @@ namespace GeneratorTest
   {
     static void Main(string[] args)
     {
-      
+      Generator.Print();
     }
   }
 }

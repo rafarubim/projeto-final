@@ -6,4 +6,8 @@
     <RootNamespace>generator_test</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\story-generator\story-generator.csproj" />
+  </ItemGroup>
+
 </Project>
