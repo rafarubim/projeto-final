@@ -6,7 +6,7 @@ namespace StoryGenerator
   {
     public static void Print()
     {
-      System.Console.WriteLine("Hello World!");
+      Console.WriteLine("Hello World!");
     }
   }
 }

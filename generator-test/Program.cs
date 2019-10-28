@@ -1,5 +1,5 @@
-﻿using System;
-using StoryGenerator;
+﻿using StoryGenerator;
+using System;
 
 namespace GeneratorTest
 {
