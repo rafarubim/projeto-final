@@ -3,6 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>story_generator</RootNamespace>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SwiPlCs">
+      <HintPath>lib\SwiPlCs_1.1.60605.0x64\SwiPlCs.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
 </Project>
