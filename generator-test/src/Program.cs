@@ -7,7 +7,10 @@ namespace GeneratorTest
   {
     static void Main(string[] args)
     {
-      Generator.Print();
+      using (var gen = Generator.Instance)
+      {
+        gen.Print();
+      }
     }
   }
 }
