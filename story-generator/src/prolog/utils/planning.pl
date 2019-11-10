@@ -38,6 +38,8 @@ actionSolution(Facts, Goals, Action) :-
   allowedActionExecution(Action, Facts, NewFacts),
   subsetOf(Goals, NewFacts).
 
-actionSpecification(move(Y), [onPos(monkey, X), pos(Y), X \== Y], [onPos(monkey, X)], [onPos(monkey, Y)]).
-%actionSpecification(carry(Y), [onPos(monkey, X), onPos(stairs, X)], [onPos(monkey, X), onPos(stairs, X)], [onPos(monkey, Y), onPos(stairs, Y)]).
-%actionSpecification(win, [onPos(monkey, X), onPos(banana, X), \+ onGround(mokey)], [], [win]).
+% actionSpecification(action, prologConditions, factConditions, effectRemovedFacts, effectAddedFacts, prologSideEffects).
+
+actionSpecification(move(Y), [], [onPos(monkey, X), pos(Y), X \== Y], [onPos(monkey, X)], [onPos(monkey, Y)], []).
+%actionSpecification(carry(Y), [], [onPos(monkey, X), onPos(stairs, X)], [onPos(monkey, X), onPos(stairs, X)], [onPos(monkey, Y), onPos(stairs, Y)], []).
+%actionSpecification(win, [], [onPos(monkey, X), onPos(banana, X), \+ onGround(mokey)], [], [win], []).
