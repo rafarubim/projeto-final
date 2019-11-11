@@ -10,11 +10,14 @@
  * 
  * @author Rafael Rubim Cabral
  * @version 0.1.0
+ * 
+ * @see Docs model: https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/pldoc.html%27)
  **/
 
 % -------------------- Public predicates
 
 %! isSet(++Set:list) is semidet
+%
 % True if Set does not contain repeated elements
 isSet([]).
 isSet([H|T]) :-
@@ -26,39 +29,65 @@ isSet([H|T]) :-
 %! elementOf(++Element:any,  +Set:list) is nondet
 %! elementOf( ?Element:any, ++Set:list) is nondet
 %! elementOf( ?Element:any,  +Set:list) is nondet
+%
+% True if Element belongs to Set. ?Element returns each set element.
 elementOf(H, [H|_]).
 elementOf(X, [_|T]) :-
   elementOf(X, T).
 
-%! setDiff(++setA, ++setB, -Diff) is multi
+%! setDiff(++SetA:list, ++SetB:list, --Diff:list) is multi
+%
+% --Diff returns the set difference SetA \ SetB.
 setDiff(S, [], S) :- !. % green cut
 setDiff(S, [H|T], Z) :-
   setWithout(S, H, Y),
   setDiff(Y, T, Z).
 
-% setUnion(setA, setB, Union)
+%! setUnion(++SetA:list, ++SetB:list, --Union:list) is multi
+%
+% --Union returns the set union SetA U SetB.
 setUnion([], S, S).
 setUnion([H|T], S, Z) :-
   setWith(S, H, Y),
   setUnion(T, Y, Z).
 
-% subsetOf(Subset, set)
+%! subsetOf(++Subset:list, ++Set:list) is nondet
+%! subsetOf( +Subset:list, ++Set:list) is nondet
+%! subsetOf(++Subset:list,  +Set:list) is nondet
+%! subsetOf( ?Subset:list, ++Set:list) is nondet
+% 
+% True if every element in Subset belongs to Set (without repeating).
+% ?Subset returns every sequence of each subset of Set.
 subsetOf([], _).
 subsetOf([H|T], X) :-
   elementOf(H, X),
   setWithout(X, H, Z),
   subsetOf(T, Z).
 
-% equivalentTo(setA, setB)
-equivalentTo(X, Y) :-
-  subsetOf(X, Y),
-  subsetOf(Y, X).
+%! equivalentTo(++SetA:list, ++SetB:list) is nondet
+%! equivalentTo( +SetA:list, ++SetB:list) is nondet
+%! equivalentTo( ?SetA:list, ++SetB:list) is nondet
+%
+% True if every element in SetA belongs to SetB (without repeating),
+% with no one left. ?SetA returns every sequence of SetB.
+equivalentTo([], []).
+equivalentTo([H|T], X) :-
+  elementOf(H, X),
+  setWithout(X, H, Z),
+  equivalentTo(T, Z).
 
-% setIsOneOf(set, setList)
+%! setIsOneOf(++Set:list, ++SetList:list) is nondet
+%! setIsOneOf( +Set:list, ++SetList:list) is nondet
+%! setIsOneOf( ?Set:list, ++SetList:list) is nondet
+%
+% True if Set is equivalent to any set in SetList. Equivalence is the
+% the same defined by "equivalentTo". ?Set returns every sequence of
+% each equivalent set in SetList.
 setIsOneOf(S, [H|_]) :-
-  equivalentTo(S, H), !. % red cut
-setIsOneOf(S, [_,T]) :-
-  setIsOneOf(S, T).
+  equivalentTo(S, H).
+setIsOneOf(S, [H|T]) :-
+  setIsOneOf(S, T),
+  H \= S.
 
 % -------------------- Private predicates
 
@@ -67,9 +96,9 @@ setWith(S, X, S) :-
   elementOf(X, S), !. % red cut
 setWith(T, H, [H|T]).
 
-% setWithout(set, Element, SetWithoutElement)
+% setWithout(set:list, Element:any, SetWithoutElement:list)
 setWithout([], _, []).
 setWithout([H|T], H, T).
 setWithout([H|T], X, [H|Z]) :-
   setWithout(T, X, Z),
-  H \== X.
+  H \= X.
