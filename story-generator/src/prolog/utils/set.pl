@@ -26,9 +26,7 @@ isSet([H|T]) :-
 
 %! elementOf(++Element:any, ++Set:list) is nondet
 %! elementOf( +Element:any, ++Set:list) is nondet
-%! elementOf(++Element:any,  +Set:list) is nondet
 %! elementOf( ?Element:any, ++Set:list) is nondet
-%! elementOf( ?Element:any,  +Set:list) is nondet
 %
 % True if Element belongs to Set. ?Element returns each set element.
 elementOf(H, [H|_]).
@@ -53,7 +51,6 @@ setUnion([H|T], S, Z) :-
 
 %! subsetOf(++Subset:list, ++Set:list) is nondet
 %! subsetOf( +Subset:list, ++Set:list) is nondet
-%! subsetOf(++Subset:list,  +Set:list) is nondet
 %! subsetOf( ?Subset:list, ++Set:list) is nondet
 % 
 % True if every element in Subset belongs to Set (without repeating).
@@ -91,12 +88,26 @@ setIsOneOf(S, [H|T]) :-
 
 % -------------------- Private predicates
 
-% setWith(set, element, SetWithElement)
+% setWith(++Set:list, ++Element:any, --SetWithElement:list) is semidet
+%
+% True if SetWithElement is Set with inclusion of Element, unless Element
+% already belonged to Set.
 setWith(S, X, S) :-
   elementOf(X, S), !. % red cut
 setWith(T, H, [H|T]).
 
-% setWithout(set:list, Element:any, SetWithoutElement:list)
+% setWithout(++Set:list, ++Element:any, --SetWithoutElement:list) is nondet
+% setWithout(++Set:list,  +Element:any, --SetWithoutElement:list) is nondet
+% setWithout( +Set:list, ++Element:any,  -SetWithoutElement:list) is nondet
+% setWithout( +Set:list,  +Element:any,  -SetWithoutElement:list) is nondet
+% setWithout(++Set:list,  ?Element:any, --SetWithoutElement:list) is nondet
+% setWithout( +Set:list,  ?Element:any,  -SetWithoutElement:list) is nondet
+%
+% True if SetWithoutElement is Set with first match of Element removed.
+% SetWithoutElement equals Set if there is no such match.
+% ?Element returns all elements in Set which match Element, but doesn't repeat
+% matching instantiations (if one instantiation returned would match another
+% element in Set, that element will not be returned).
 setWithout([], _, []).
 setWithout([H|T], H, T).
 setWithout([H|T], X, [H|Z]) :-

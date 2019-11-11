@@ -25,14 +25,9 @@ test(elementOf, [fail]) :- elementOf(d, [a, b, c]).
 %! elementOf( +Element:any, ++Set:list) is nondet
 test(elementOf, [all(X=[a,b,c])]) :- elementOf(f(X), [f(a), f(b), f(c)]).
 test(elementOf, [fail]) :- elementOf(f(_), []).
-%! elementOf(++Element:any,  +Set:list) is nondet
-test(elementOf, [all(X = [b])]) :- elementOf(b, [a, X, c]).
-test(elementOf, [all(X = [c, _])]) :- elementOf(c, [a, X, c]).
 %! elementOf( ?Element:any, ++Set:list) is nondet
 test(elementOf, [all(X = [a,b,c])]) :- elementOf(X, [a, b, c]).
 test(elementOf, [fail]) :- elementOf(_, []).
-%! elementOf( ?Element:any,  +Set:list) is nondet
-test(elementOf, [all([X, Y] = [[a,_],[_,_],[c,_]])]) :- elementOf(X, [a, Y, c]).
 
 %! setDiff(++setA:list, ++setB:list, -Diff:list) is multi
 test(setDiff, [all(X = [[]])]) :- setDiff([], [], X).
@@ -79,16 +74,6 @@ test(subsetOf, [fail]) :- subsetOf([_, d], [a, b, c]).
 test(subsetOf, [fail]) :- subsetOf([d, _], [a, b, c]).
 test(subsetOf, [fail]) :- subsetOf([a, d|_], [a, b, c]).
 test(subsetOf, [fail]) :- subsetOf([d, a|_], [a, b, c]).
-% subsetOf(++Subset:list,  +Set:list) is nondet
-test(subsetOf, [all(X=[_])]) :- subsetOf([], [X]).
-test(subsetOf, [all(X=[a])]) :- subsetOf([a], [X]).
-test(subsetOf, [all(X=[b])]) :- subsetOf([b], [a, X, c]).
-test(subsetOf, [all(X=[b])]) :- subsetOf([a, b], [a, X, c]).
-test(subsetOf, [all(X=[b])]) :- subsetOf([b, a], [a, X, c]).
-test(subsetOf, [nondet]) :- subsetOf([c, a], [a, _, c]).
-test(subsetOf, [fail]) :- subsetOf([d, b], [a, _, c]).
-test(subsetOf, [fail]) :- subsetOf([b, d], [a, _, c]).
-test(subsetOf, [all(X=[_])]) :- subsetOf([], [a, X, c]).
 % subsetOf( ?Subset:list, ++Set:list) is nondet
 test(subsetOf, [all(X=[[]])]) :- subsetOf(X, []).
 test(subsetOf, [all(X = [[],[a],[a,b],[b],[b,a]])]) :- subsetOf(X, [a, b]).
