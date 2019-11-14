@@ -39,7 +39,7 @@ setDiff(S, [H|T], Z) :-
   setWithout(S, H, Y),
   setDiff(Y, T, Z).
 
-%! setUnion(++SetA:list, ++SetB:list, --Union:list) is multi
+%! setUnion(++SetA:list, ++SetB:list, --Union:list) is det
 %
 % --Union returns the set union SetA U SetB.
 setUnion([], S, S).
