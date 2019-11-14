@@ -24,8 +24,6 @@ isSet([H|T]) :-
   not(elementOf(H, T)),
   isSet(T).
 
-%! elementOf(++Element:any, ++Set:list) is nondet
-%! elementOf( +Element:any, ++Set:list) is nondet
 %! elementOf( ?Element:any, ++Set:list) is nondet
 %
 % True if Element belongs to Set. ?Element returns each set element.
@@ -49,8 +47,6 @@ setUnion([H|T], S, Z) :-
   setWith(S, H, Y),
   setUnion(T, Y, Z).
 
-%! subsetOf(++Subset:list, ++Set:list) is nondet
-%! subsetOf( +Subset:list, ++Set:list) is nondet
 %! subsetOf( ?Subset:list, ++Set:list) is nondet
 % 
 % True if every element in Subset belongs to Set (without repeating).
@@ -61,8 +57,6 @@ subsetOf([H|T], X) :-
   setWithout(X, H, Z),
   subsetOf(T, Z).
 
-%! equivalentTo(++SetA:list, ++SetB:list) is nondet
-%! equivalentTo( +SetA:list, ++SetB:list) is nondet
 %! equivalentTo( ?SetA:list, ++SetB:list) is nondet
 %
 % True if every element in SetA belongs to SetB (without repeating),
@@ -73,8 +67,6 @@ equivalentTo([H|T], X) :-
   setWithout(X, H, Z),
   equivalentTo(T, Z).
 
-%! setIsOneOf(++Set:list, ++SetList:list) is nondet
-%! setIsOneOf( +Set:list, ++SetList:list) is nondet
 %! setIsOneOf( ?Set:list, ++SetList:list) is nondet
 %
 % True if Set is equivalent to any set in SetList. Equivalence is the
@@ -96,11 +88,6 @@ setWith(S, X, S) :-
   elementOf(X, S), !. % red cut
 setWith(T, H, [H|T]).
 
-% setWithout(++Set:list, ++Element:any, --SetWithoutElement:list) is nondet
-% setWithout(++Set:list,  +Element:any, --SetWithoutElement:list) is nondet
-% setWithout( +Set:list, ++Element:any,  -SetWithoutElement:list) is nondet
-% setWithout( +Set:list,  +Element:any,  -SetWithoutElement:list) is nondet
-% setWithout(++Set:list,  ?Element:any, --SetWithoutElement:list) is nondet
 % setWithout( +Set:list,  ?Element:any,  -SetWithoutElement:list) is nondet
 %
 % True if SetWithoutElement is Set with first match of Element removed.
