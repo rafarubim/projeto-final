@@ -11,7 +11,8 @@
  * @author Rafael Rubim Cabral
  * @version 0.1.0
  * 
- * @see Docs model: https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/pldoc.html%27)
+ * Docs model:
+ * @see https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/pldoc.html%27)
  **/
 
 % -------------------- Public predicates
@@ -33,7 +34,7 @@ elementOf(X, [_|T]) :-
 
 %! setDiff(++SetA:list, ++SetB:list, --Diff:list) is nondet
 %
-% --Diff returns the set difference SetA \ SetB.
+% True if Diff is the set difference SetA \ SetB, in a specific order.
 setDiff(S, [], S) :- !. % green cut
 setDiff(S, [H|T], Z) :-
   setWithout(S, H, Y),
@@ -41,7 +42,7 @@ setDiff(S, [H|T], Z) :-
 
 %! setUnion(++SetA:list, ++SetB:list, --Union:list) is semidet
 %
-% --Union returns the set union SetA U SetB.
+% True if Union is the set union SetA U SetB, in a specific order.
 setUnion([], S, S).
 setUnion([H|T], S, Z) :-
   setWith(S, H, Y),
