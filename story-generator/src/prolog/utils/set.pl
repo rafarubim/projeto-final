@@ -31,7 +31,7 @@ elementOf(H, [H|_]).
 elementOf(X, [_|T]) :-
   elementOf(X, T).
 
-%! setDiff(++SetA:list, ++SetB:list, --Diff:list) is multi
+%! setDiff(++SetA:list, ++SetB:list, --Diff:list) is nondet
 %
 % --Diff returns the set difference SetA \ SetB.
 setDiff(S, [], S) :- !. % green cut
@@ -39,7 +39,7 @@ setDiff(S, [H|T], Z) :-
   setWithout(S, H, Y),
   setDiff(Y, T, Z).
 
-%! setUnion(++SetA:list, ++SetB:list, --Union:list) is det
+%! setUnion(++SetA:list, ++SetB:list, --Union:list) is semidet
 %
 % --Union returns the set union SetA U SetB.
 setUnion([], S, S).
