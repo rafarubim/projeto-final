@@ -15,9 +15,6 @@ actionSpec(carry(X, Y), [place(X), place(Y)], [X \== Y], [onPos(monkey, X), onPo
 actionSpec(climb(X), [place(X)], [], [onPos(monkey, X), onPos(stairs, X), onGround(monkey)], [onGround(monkey)], [], []).
 actionSpec(win(X), [place(X)], [], [onPos(monkey, X), onPos(banana, X), \+ onGround(monkey)], [], [win], []).
 
-printClause(Clause) :-
-  write(Clause), nl.
-
 :- endDomainDefinition(monkeyDomain).
 
 :- beginProblemDefinition(monkeyDomain).
