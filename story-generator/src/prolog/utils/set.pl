@@ -3,7 +3,7 @@
 /**
  * <module> Set
  * 
- * This module declares predicates to deal with the set data structure.
+ *   This module declares predicates to deal with the set data structure.
  * A set is represented by a prolog list which doesn't have repeated elements.
  * The order of the elements in the list doesn't matter, which means [a, b] and
  * [b, a] are equivalent.
