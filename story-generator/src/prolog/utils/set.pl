@@ -32,7 +32,7 @@ elementOf(H, [H|_]).
 elementOf(X, [_|T]) :-
   elementOf(X, T).
 
-%! setDiff(++SetA:list, ++SetB:list, --Diff:list) is nondet
+%! setDiff(++SetA:list, ++SetB:list, -Diff:list) is multi
 %
 % True if Diff is the set difference SetA \ SetB, in a specific order.
 setDiff(S, [], S) :- !. % green cut
@@ -40,7 +40,7 @@ setDiff(S, [H|T], Z) :-
   setWithout(S, H, Y),
   setDiff(Y, T, Z).
 
-%! setUnion(++SetA:list, ++SetB:list, --Union:list) is semidet
+%! setUnion(++SetA:list, ++SetB:list, -Union:list) is det
 %
 % True if Union is the set union SetA U SetB, in a specific order.
 setUnion([], S, S).
@@ -81,7 +81,7 @@ setIsOneOf(S, [H|T]) :-
 
 % -------------------- Private predicates
 
-% setWith(++Set:list, ++Element:any, --SetWithElement:list) is semidet
+% setWith(++Set:list, ++Element:any, -SetWithElement:list) is det
 %
 % True if SetWithElement is Set with inclusion of Element, unless Element
 % already belonged to Set.
@@ -89,7 +89,7 @@ setWith(S, X, S) :-
   elementOf(X, S), !. % red cut
 setWith(T, H, [H|T]).
 
-% setWithout( +Set:list,  ?Element:any,  -SetWithoutElement:list) is nondet
+% setWithout( +Set:list,  ?Element:any,  -SetWithoutElement:list) is multi
 %
 % True if SetWithoutElement is Set with first match of Element removed.
 % SetWithoutElement equals Set if there is no such match.

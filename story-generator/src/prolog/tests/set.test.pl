@@ -37,7 +37,7 @@ test(setDiff, [all(X = [[a,c]])]) :- setDiff([a, b, c], [b], X).
 test(setDiff, [all(X = [[b]])]) :- setDiff([a, b, c], [a, c], X).
 test(setDiff, [all(X = [[]])]) :- setDiff([a, b, c], [a, b, c], X).
 
-%! setUnion(++setA:list, ++setB:list, --Union:list) is multi
+%! setUnion(++setA:list, ++setB:list, -Union:list) is det
 test(setUnion, [all(X = [[]])]) :- setUnion([], [], X).
 test(setUnion, [all(X = [[c,b,a]])]) :- setUnion([a, b, c], [], X).
 test(setUnion, [all(X = [[a,b,c]])]) :- setUnion([], [a, b, c], X).
