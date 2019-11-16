@@ -102,7 +102,7 @@ endGetRuntimeClauses(Namespace, Clauses) :-
   retract(getRuntimeClauses:clauseDef(Namespace, Head, Body)),
   retract(getRuntimeClauses:refs(Namespace, OldRefs)),
   findall(Ref, clause(Head, Body, Ref), NewRefs),
-  setDiff(NewRefs, OldRefs, Refs),
+  setDiff(NewRefs, OldRefs, Refs), !, % green cut
   maplist(getRuntimeClauses:refToClause, Refs, Clauses).
 
 % -------------------- Private predicates
