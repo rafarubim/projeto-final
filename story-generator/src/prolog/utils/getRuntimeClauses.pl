@@ -57,18 +57,47 @@
 :- dynamic refs/2.
 :- module_transparent([beginGetRuntimeClauses/3, endGetRuntimeClauses/2]).
 
+% -------------------- Public predicates
+
+%! beginGetRuntimeClauses(++Namespace:atom, +Head:any, +Body:any) is det
+%
+% @arg Namespace This could be any atom. The Namespace used here should also be
+%                used by the corresponding call to "endGetRuntimeClauses".
+% @arg Head An expression that should match the head of clauses you're interested in.
+% @arg Body An expression that should match the body of clauses you're interested in.
+%
+% Begins watching clause definition that matches (Head :- Body). All clauses
+% defined in the runtime after this is called and before "endGetRuntimeClauses"
+% is called are kept in a list which is returned by "endGetRuntimeClauses".
 beginGetRuntimeClauses(Namespace, Head, Body) :-
   findall(Ref, clause(Head, Body, Ref), Refs),
   assert(getRuntimeClauses:clauseDef(Namespace, Head, Body)),
   assert(getRuntimeClauses:refs(Namespace, Refs)).
 
+%! endGetRuntimeClauses(++Namespace:atom, -Clauses:list) is det
+%
+% @arg Namespace This could be any atom. The Namespace used here should match
+%                the one used by the corresponding call to "beginGetRuntimeClauses".
+% @arg Clauses List of all the clauses caught since "beginGetRuntimeClauses" was called.
+%
+% True if Clauses is a list of all the runtime-defined clauses caught
+% since the call to "beginGetRuntimeClauses". The list is ordered in the clause
+% definition order.
 endGetRuntimeClauses(Namespace, Clauses) :-  
   retract(getRuntimeClauses:clauseDef(Namespace, Head, Body)),
   retract(getRuntimeClauses:refs(Namespace, OldRefs)),
   findall(Ref, clause(Head, Body, Ref), NewRefs),
   setDiff(NewRefs, OldRefs, Refs),
-  maplist(getRuntimeClauses:mapClauses, Refs, Clauses).
+  maplist(getRuntimeClauses:refToClause, Refs, Clauses).
 
-mapClauses(Ref, Clause) :-
+% -------------------- Private predicates
+
+% refToClause(++Ref, -Clause) is det
+%
+% @arg Ref Reference to a clause
+% @arg Clause Clause that corresponds to the ref
+%
+% True if Clause is the clause referenced by Ref
+refToClause(Ref, Clause) :-
   clause(_:Head, Body, Ref),
   (Clause) = (Head :- Body).
