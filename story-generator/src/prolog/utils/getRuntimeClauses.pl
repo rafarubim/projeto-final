@@ -27,20 +27,23 @@
  * namespaces. Just make sure you have a corresponding "endGetRuntimeClauses" call with the same namespace
  * for each one.
  *   Note that the clause "happy(john)." is a clause with Head = "happy(john)" and Body = "true".
- *   Note that the module context in which "beginGetRuntimeClauses" and "endGetRuntimeClauses"
- * run is important, so if you're going to create your own predicates which delegate their call to
- * yet another module, then you should make these predicates transparent with "module_transparent".
+ *   Note that the module context which calls "beginGetRuntimeClauses" is important, because it is a meta_predicate.
+ * So if you're going to create your own predicate which delegates its call to yet another module, then you should
+ * also make that predicate a meta_predicate, with a Head meta argument. If your predicate doesn't receive a Head argument,
+ * You can use "module_transparent" and the "context_module" predicate instead.
  * An example follows below:
  * 
  *  ---------- yourModule.pl ----------
  * 
- * :- module_transparent([beginDelegationWhichOnlyCaresAboutHead/2, endDelegationWhichOnlyCaresAboutHead/2]).
+ * :- meta_predicate beginDelegationWhichReceivesHead(+, :).
+ * :- module_transparent([beginDelegationWhichDoesntReceiveHead/2]).
  * 
- * beginDelegationWhichOnlyCaresAboutHead(Namespace, Head) :-
- *  beginGetRuntimeClauses(Namespace, Head, true).
+ * beginDelegationWhichReceivesHead(Namespace, Head) :-
+ *   beginGetRuntimeClauses(Namespace, Head, true).
  *
- * endDelegationWhichOnlyCaresAboutHead(Namespace, Clauses) :-
- *  endGetRuntimeClauses(Namespace, Clauses).
+ * beginDelegationWhichDoesntReceiveHead(Namespace, Body) :-
+ *   context_module(Context),
+ *   beginGetRuntimeClauses(Namespace, Context:_, Body).
  *
  * ------ end of yourModule.pl -------
  * 
@@ -67,7 +70,7 @@
 % corresponding Namespace.
 :- dynamic refs/2.
 
-:- module_transparent([beginGetRuntimeClauses/3, endGetRuntimeClauses/2]).
+:- meta_predicate beginGetRuntimeClauses(+,:,+).
 
 % -------------------- Public predicates
 
