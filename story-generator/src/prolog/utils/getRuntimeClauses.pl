@@ -53,8 +53,20 @@
 
 :- use_module(set, [setDiff/3]).
 
+% clauseDef(++Namespace:atom, -Head:any, -Body:any) is nondet
+%
+% True if "beginGetRuntimeClauses" was called with the same parameters and
+% "endGetRuntimeClauses" wasn't yet called with the corresponding Namespace.
 :- dynamic clauseDef/3.
+
+% refs(++Namespace:atom, -Refs:list) is nondet
+%
+% True if "beginGetRuntimeClauses" was called with Namespace and Refs is a list
+% of all the refs of the clauses in the calling module that matched "beginGetRuntimeClauses" 
+% args. Also only true if "endGetRuntimeClauses" wasn't yet called with the
+% corresponding Namespace.
 :- dynamic refs/2.
+
 :- module_transparent([beginGetRuntimeClauses/3, endGetRuntimeClauses/2]).
 
 % -------------------- Public predicates
