@@ -240,29 +240,37 @@ planAStar(_, Facts, Goals, _, [], 0, Facts) :-
   satisfiedPlannerGoals(Facts, Goals), !. % red cut
 planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts) :-
   empty_heap(Heap),
-  addNonForbiddenActionsToHeap(Namespace, 0, halfPlanExecution([], Facts), [Facts], Heuristic, Heap, NewHeap),
+  add_to_heap(Heap, 0, halfPlanExecution([], Facts), MiddleHeap),
+  openNonForbiddenActionsInHeap(Namespace, [Facts], Heuristic, MiddleHeap, NewHeap, _),
   \+ empty_heap(NewHeap),
   planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts], ReversePlan, PlanCost, FinalFacts),
   reverse(ReversePlan, Plan).
 
 planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts) :-
-  get_from_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), PopedHeap),
+  min_of_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts)),
+  satisfiedPlannerGoals(Facts, Goals),
   (
-    satisfiedPlannerGoals(Facts, Goals),
     Plan = HalfPlan,
     PlanCost = HalfPlanCost,
     FinalFacts = Facts
   ;
-    addNonForbiddenActionsToHeap(Namespace, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), ForbiddenStates, Heuristic, PopedHeap, NewHeap),
-    \+ empty_heap(NewHeap),
-    planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts|ForbiddenStates], Plan, PlanCost, FinalFacts)
+    !, % red cut
+    get_from_heap(Heap, _, _, PopedHeap),
+    planAStar_(Namespace, PopedHeap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts)
   ).
-  
+planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts) :-
+  openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, Heap, NewHeap, OpenedFacts),
+  \+ empty_heap(NewHeap),
+  planAStar_(Namespace, NewHeap, Goals, Heuristic, [OpenedFacts|ForbiddenStates], Plan, PlanCost, FinalFacts).
 
-addNonForbiddenActionsToHeap(Namespace, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), ForbiddenStates, Heuristic, Heap, NewHeap) :-
-  findall(actionExecution(Action, ObtainedFacts), allowedActionExecution(Namespace, Action, Facts, ObtainedFacts), AllActionExecutions),
+openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, Heap, NewHeap, OpenedFacts) :-
+  %write("BEGIN OPENING ---------------------------- "),
+  get_from_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, OpenedFacts), PopedHeap),
+  %reverse(HalfPlan, WritePlan), write(WritePlan), write(" --------- "), write(ForbiddenStates), nl,
+  findall(actionExecution(Action, ObtainedFacts), allowedActionExecution(Namespace, Action, OpenedFacts, ObtainedFacts), AllActionExecutions),
   filterNonForbiddenActionExecutions(AllActionExecutions, ForbiddenStates, NonForbiddenActions),
-  addPlanExecutionsToHeap(NonForbiddenActions, Heuristic, HalfPlanCost, HalfPlan, Heap, NewHeap).
+  %write("NONFORB --------- "), write(NonForbiddenActions), nl,
+  addPlanExecutionsToHeap(NonForbiddenActions, Heuristic, HalfPlanCost, HalfPlan, PopedHeap, NewHeap).
 
 filterNonForbiddenActionExecutions([], _, []).
 filterNonForbiddenActionExecutions([actionExecution(_, ObtainedFacts)|RestOfActionExecutions], ForbiddenStates, NonForbiddenActionExecutions) :-
@@ -272,11 +280,36 @@ filterNonForbiddenActionExecutions([actionExecution(Action, ObtainedFacts)|RestO
   filterNonForbiddenActionExecutions(RestOfActionExecutions, ForbiddenStates, RestOfNonForbiddenActionExecutions).
 
 addPlanExecutionsToHeap([], _, _, _, Heap, Heap).
-addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActions], Heuristic, HalfPlanCost, HalfPlan, Heap, NewHeap) :-
+addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActionExecutions], Heuristic, HalfPlanCost, HalfPlan, Heap, NewHeap) :-
   call(Heuristic, actionExecution(Action, ObtainedFacts), Cost),
   TotalCost is HalfPlanCost + Cost,
-  add_to_heap(Heap, TotalCost, halfPlanExecution([Action|HalfPlan], ObtainedFacts), MiddleHeap),
-  addPlanExecutionsToHeap(RestOfActions, Heuristic, HalfPlanCost, HalfPlan, MiddleHeap, NewHeap).
+  addHalfPlanToHeapIfBetterOrEqual(Heap, TotalCost, halfPlanExecution([Action|HalfPlan], ObtainedFacts), MiddleHeap),
+  %write("Cost: "), write(TotalCost), write(", Action: "), write(Action), nl,
+  addPlanExecutionsToHeap(RestOfActionExecutions, Heuristic, HalfPlanCost, HalfPlan, MiddleHeap, NewHeap).
+
+addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, HalfPlanExecution, NewHeap) :-
+  empty_heap(Heap), !, % red cut
+  add_to_heap(Heap, HalfPlanCost, HalfPlanExecution, NewHeap).
+addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap) :-
+  get_from_heap(Heap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), PopedHeap),
+  (
+    equivalentTo(PopedFacts, Facts), !, % red cut
+    (
+      HalfPlanCost =:= PopedCost, !, % green cut
+      add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), MiddleHeap),
+      add_to_heap(MiddleHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
+    ;
+      HalfPlanCost < PopedCost, !, % green cut
+      add_to_heap(PopedHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
+    ;
+      HalfPlanCost > PopedCost,
+      add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), NewHeap)
+    )
+  ;
+    % \+ equivalentTo(PopedFacts, Facts)
+    addHalfPlanToHeapIfBetterOrEqual(PopedHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), AddedHeap),
+    add_to_heap(AddedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), NewHeap)
+  ).
 
 % -------------------- Private predicates
 
