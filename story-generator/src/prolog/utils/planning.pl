@@ -1,10 +1,10 @@
-:- module(planning, [planExecution/5, beginDomainDefinition/1, endDomainDefinition/1, deleteDomain/1, beginProblemDefinition/1, endProblemDefinition/1, deleteProblem/1]).
+:- module(planning, [plan/5, planAStar/7, beginDomainDefinition/1, endDomainDefinition/1, deleteDomain/1, beginProblemDefinition/1, endProblemDefinition/1, deleteProblem/1]).
 
 /**
  * <module> Planning
  * 
  *   This module implements a STRIPS-like planner with prolog functionalities. It consumes external predicates
- * for domain definition (actionSpec, type) and problem definition. It defines a predicate (planExecution) to
+ * for domain definition (actionSpec, type) and problem definition. It defines a predicate (plan) to
  * return plans that satisfy the problem.
  * To use the module, an ontology similar to PDDL STRIPS must be followed to define a planning domain/problem.
  * It is explained below.
@@ -75,12 +75,12 @@
  * on different domains/problems simultanously, as long as you use different namespaces for them. Also note that
  * a namespace contains a single domain and problem. If you want to want to use the namespace again, you can call
  * ":- deleteProblem(domain_name)" or ":- deleteDomain(domain_name)". Deleting the domain also deletes the problem.
- *   To use the planner, you call the "planExecution" predicate with the corresponding namespace. It also receives
+ *   To use the planner, you call the "plan" predicate with the corresponding namespace. It also receives
  * a list of planner facts and planner goals (which are just like actionSpec's arg4). The planner will return you
  * a plan (list of actions in the order they should be executed) and the final set of facts, resulting from the
  * executing each action in the plan. A final example follows below, with the query and the result.
  * 
- * ?- planExecution(
+ * ?- plan(
  * ?-   domain_name,                    % Namespace
  * ?-   [onLocation(jorge, hogwarts)],  % List of facts
  * ?-   [onLocation(jorge, hyrule)],    % List of goals
@@ -125,6 +125,8 @@
 
 :- module_transparent([beginDomainDefinition/1]).
 :- module_transparent([beginProblemDefinition/1]).
+
+:- meta_predicate planAStar(+,+,+,2,-,-,-).
 
 % actionSpec(++Namespace:atom, -Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
 %                     -RemovedFacts:list, -AddedFacts:list, -PrologSideEffects:list) is nondet
@@ -219,7 +221,7 @@ endProblemDefinition(Namespace) :-
 deleteProblem(Namespace) :-
   findall(_, deleteOneTypeFunctor(Namespace), _).
 
-% planExecution(++Namespace:atom, ++Facts:list, ++Goals:list, ?Plan:list, ?FinalFacts:list) is nondet
+% plan(++Namespace:atom, ++Facts:list, ++Goals:list, ?Plan:list, ?FinalFacts:list) is nondet
 %
 % @arg Namespace This could be any atom. The Namespace used here should match the
 %                one used in "endDomainDefinition" and "endProblemDefinition".
@@ -231,8 +233,50 @@ deleteProblem(Namespace) :-
 %
 % True if all Goals are satisfied after the sequence of actions in Plan is applied
 % to the Facts, generating FinalFacts.
-planExecution(Namespace, Facts, Goals, Plan, FinalFacts) :-
-  planExecutionWithForbiddenStates(Namespace, Facts, Goals, Plan, [Facts], FinalFacts).
+plan(Namespace, Facts, Goals, Plan, FinalFacts) :-
+  planWithForbiddenStates(Namespace, Facts, Goals, Plan, [Facts], FinalFacts).
+
+planAStar(_, Facts, Goals, _, [], 0, Facts) :-
+  satisfiedPlannerGoals(Facts, Goals), !. % red cut
+planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts) :-
+  empty_heap(Heap),
+  addNonForbiddenActionsToHeap(Namespace, 0, halfPlanExecution([], Facts), [Facts], Heuristic, Heap, NewHeap),
+  \+ empty_heap(NewHeap),
+  planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts], ReversePlan, PlanCost, FinalFacts),
+  reverse(ReversePlan, Plan).
+
+planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts) :-
+  get_from_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), PopedHeap),
+  (
+    satisfiedPlannerGoals(Facts, Goals),
+    Plan = HalfPlan,
+    PlanCost = HalfPlanCost,
+    FinalFacts = Facts
+  ;
+    addNonForbiddenActionsToHeap(Namespace, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), ForbiddenStates, Heuristic, PopedHeap, NewHeap),
+    \+ empty_heap(NewHeap),
+    planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts|ForbiddenStates], Plan, PlanCost, FinalFacts)
+  ).
+  
+
+addNonForbiddenActionsToHeap(Namespace, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), ForbiddenStates, Heuristic, Heap, NewHeap) :-
+  findall(actionExecution(Action, ObtainedFacts), allowedActionExecution(Namespace, Action, Facts, ObtainedFacts), AllActionExecutions),
+  filterNonForbiddenActionExecutions(AllActionExecutions, ForbiddenStates, NonForbiddenActions),
+  addPlanExecutionsToHeap(NonForbiddenActions, Heuristic, HalfPlanCost, HalfPlan, Heap, NewHeap).
+
+filterNonForbiddenActionExecutions([], _, []).
+filterNonForbiddenActionExecutions([actionExecution(_, ObtainedFacts)|RestOfActionExecutions], ForbiddenStates, NonForbiddenActionExecutions) :-
+  setIsOneOf(ObtainedFacts, ForbiddenStates), !, % red cut
+  filterNonForbiddenActionExecutions(RestOfActionExecutions, ForbiddenStates, NonForbiddenActionExecutions).
+filterNonForbiddenActionExecutions([actionExecution(Action, ObtainedFacts)|RestOfActionExecutions], ForbiddenStates, [actionExecution(Action, ObtainedFacts)|RestOfNonForbiddenActionExecutions]) :-
+  filterNonForbiddenActionExecutions(RestOfActionExecutions, ForbiddenStates, RestOfNonForbiddenActionExecutions).
+
+addPlanExecutionsToHeap([], _, _, _, Heap, Heap).
+addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActions], Heuristic, HalfPlanCost, HalfPlan, Heap, NewHeap) :-
+  call(Heuristic, actionExecution(Action, ObtainedFacts), Cost),
+  TotalCost is HalfPlanCost + Cost,
+  add_to_heap(Heap, TotalCost, halfPlanExecution([Action|HalfPlan], ObtainedFacts), MiddleHeap),
+  addPlanExecutionsToHeap(RestOfActions, Heuristic, HalfPlanCost, HalfPlan, MiddleHeap, NewHeap).
 
 % -------------------- Private predicates
 
@@ -313,8 +357,6 @@ termWithNamespace(Namespace, Term, TermWithNamespace) :-
 %
 % Asserts the clause within the planning module, regardless of the caller context module.
 assertClause(Clause) :-
-  (Head:-_)=Clause,
-  write(Head),
   assert(Clause).
 
 % negation(?Term:any, ?NegatedTerm:any) is semidet
@@ -335,10 +377,10 @@ isNegation(X) :-
 emptyIntersection(SetA, SetB) :-
   setDiff(SetA, SetB, SetA).
 
-% satisfiedGoalsList(:GoalsList:list) is nondet
+% satisfiedPrologGoalsList(:GoalsList:list) is nondet
 %
 % True if GoalsList is a list of satisfied goals (in conjunction).
-satisfiedGoalsList(GoalsList) :-
+satisfiedPrologGoalsList(GoalsList) :-
   maplist(call, GoalsList).
 
 % executeSideEffects(:SideEffectsList:list) is det
@@ -402,17 +444,22 @@ updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts) :-
 % NewFacts is the resulting set after applying the Action. NewFacts must have a
 % specific order.
 allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
-  actionSpect(Namespace, Action, TypeSpecs, PrologConditions, Conditions, RemovedFacts, AddedFacts, PrologSideEffects),
+  actionSpec(Namespace, Action, TypeSpecs, PrologConditions, Conditions, RemovedFacts, AddedFacts, PrologSideEffects),
   typeSpecsWithNamespace(Namespace, TypeSpecs, TypeSpecsWithNamespace),
-  satisfiedGoalsList(TypeSpecsWithNamespace),
-  satisfiedGoalsList(PrologConditions),
+  satisfiedPrologGoalsList(TypeSpecsWithNamespace),
+  satisfiedPrologGoalsList(PrologConditions),
   separatedGoals(Conditions, InclusionConditions, AbscenceConditions),
   subsetOf(InclusionConditions, Facts),
   emptyIntersection(AbscenceConditions, Facts),
   updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts),
   executeSideEffects(PrologSideEffects).
 
-% planExecutionWithForbiddenStates(++Namespace:atom, ++Facts:list, ++Goals:list, ?Plan:list, ++ForbiddenStates:list,
+satisfiedPlannerGoals(Facts, Goals) :-
+  separatedGoals(Goals, InclusionGoals, AbsenceGoals),
+  subsetOf(InclusionGoals, Facts),
+  emptyIntersection(AbsenceGoals, Facts).
+
+% planWithForbiddenStates(++Namespace:atom, ++Facts:list, ++Goals:list, ?Plan:list, ++ForbiddenStates:list,
 %                                 ?FinalFacts:list) is nondet
 %
 % @arg Namespace This could be any atom. The Namespace used here should match the
@@ -427,11 +474,9 @@ allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
 %
 % True if all Goals are satisfied after the sequence of actions in Plan is applied
 % to the Facts, without passing thorugh any state in ForbiddenStates. 
-planExecutionWithForbiddenStates(_, Facts, Goals, [], _, Facts) :-
-  separatedGoals(Goals, InclusionGoals, AbsenceGoals),
-  subsetOf(InclusionGoals, Facts),
-  emptyIntersection(AbsenceGoals, Facts), !. % red cut
-planExecutionWithForbiddenStates(Namespace, Facts, Goals, [FirstAction|RestOfPlan], ForbiddenStates, FinalFacts) :-
+planWithForbiddenStates(_, Facts, Goals, [], _, Facts) :-
+  satisfiedPlannerGoals(Facts, Goals), !. % red cut
+planWithForbiddenStates(Namespace, Facts, Goals, [FirstAction|RestOfPlan], ForbiddenStates, FinalFacts) :-
   allowedActionExecution(Namespace, FirstAction, Facts, NewFacts),
   not(setIsOneOf(NewFacts, ForbiddenStates)),
-  planExecutionWithForbiddenStates(Namespace, NewFacts, Goals, RestOfPlan, [NewFacts|ForbiddenStates], FinalFacts).
+  planWithForbiddenStates(Namespace, NewFacts, Goals, RestOfPlan, [NewFacts|ForbiddenStates], FinalFacts).

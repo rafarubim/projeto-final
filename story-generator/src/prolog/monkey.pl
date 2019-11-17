@@ -1,4 +1,4 @@
-:- module(monkey, [monkeyPlan/1]).
+:- module(monkey, [monkeyPlan/1, monkeyAStarPlan/1]).
 
 :- use_module("utils/planning").
 % PLANNER EXAMPLE
@@ -39,7 +39,12 @@ facts([
   onGround(monkey)
   ]).
 
-monkeyPlan(Plan) :- facts(X), planExecution(monkeyDomain, X, [win], Plan).
+monkeyPlan(Plan) :- facts(X), plan(monkeyDomain, X, [win], Plan, _).
+
+heuristic(actionExecution(win,_), 50) :- !.
+heuristic(actionExecution(_,_), 5).
+
+monkeyAStarPlan(Plan) :- facts(X), planAStar(monkeyDomain, X, [win], heuristic, Plan, _, _).
 
 % The following query retrieves the plan:
 % monkeyPlan(Plan).
