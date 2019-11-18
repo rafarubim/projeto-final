@@ -13,9 +13,11 @@
  * @see Docs model: https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/pldoc.html%27)
  **/
 
-test(beginDomainDefinition) :- beginDomainDefinition(locationsDomain).
+test(beginDomainDefinition) :-
+  beginDomainDefinition(locationsDomain).
 
-test(domainDefinition) :-
+test(endDomainDefinition) :- 
+  % Setup
   assert(type(person)),
   assert(type(location)),
   assert(actionSpec(
@@ -26,19 +28,27 @@ test(domainDefinition) :-
     [onLocation(P, L1)], 
     [onLocation(P, L2)],  
     []
-  )).
+  )),
+  % Test
+  endDomainDefinition(locationsDomain),
+  % Teardown
+  retractall(type(_)),
+  retractall(actionSpec(_,_,_,_,_,_,_)).
 
-test(endDomainDefinition) :- endDomainDefinition(locationsDomain).
+test(beginProblemDefinition) :-
+  beginProblemDefinition(locationsDomain).
 
-test(beginProblemDefinition) :- beginProblemDefinition(locationsDomain).
-
-test(problemDefinition) :-
+test(endProblemDefinition) :-
+  % Setup
   assert(person(jorge)),
   assert(location(hogwarts)),
   assert(location(araluen)),
-  assert(location(hyrule)).
-
-test(endProblemDefinition) :- endProblemDefinition(locationsDomain).
+  assert(location(hyrule)),
+  % Test
+  endProblemDefinition(locationsDomain),
+  % Teardown
+  retractall(person(_)),
+  retractall(location(_)).
 
 test(plan, [
       all(
@@ -96,17 +106,23 @@ test(planAStar, [
   % Teardown
   retractall(heuristic(_, _)).
 
-test(deleteProblem) :- deleteProblem(locationsDomain).
+test(deleteProblem) :-
+  deleteProblem(locationsDomain).
 
-test(beginProblemDefinition) :- beginProblemDefinition(locationsDomain).
+test(beginProblemDefinition) :-
+  beginProblemDefinition(locationsDomain).
 
-test(problemDefinition) :-
+test(endProblemDefinition) :-
+  %Setup
   assert(person(merlin)),
   assert(location(pallet_city)),
   assert(location(grand_line)),
-  assert(location(alagaesia)).
-
-test(endProblemDefinition) :- endProblemDefinition(locationsDomain).
+  assert(location(alagaesia)),
+  % Test
+  endProblemDefinition(locationsDomain),
+  % Teardown
+  retractall(person(_)),
+  retractall(location(_)).
 
 test(plan, [
       all(
