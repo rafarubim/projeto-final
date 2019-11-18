@@ -40,14 +40,61 @@ test(problemDefinition) :-
 
 test(endProblemDefinition) :- endProblemDefinition(locationsDomain).
 
-test(planExecution, [all([Plan,FinalState]=[[move(jorge,hogwarts,hyrule)]])]) :-
-  planExecution(
+test(plan, [
+      all(
+        [
+          Plan,
+          FinalState
+        ]=[
+          [
+            [move(jorge,hogwarts,araluen), move(jorge,araluen,hyrule)],
+            [onLocation(jorge, hyrule)]
+          ],
+          [
+            [move(jorge,hogwarts,hyrule)],
+            [onLocation(jorge, hyrule)]
+          ]
+        ]
+      )
+    ]) :-
+  plan(
     locationsDomain,
     [onLocation(jorge, hogwarts)],
     [onLocation(jorge, hyrule)],
     Plan,
     FinalState
   ).
+
+test(planAStar, [
+      all(
+        [
+          Plan,
+          PlanCost,
+          FinalState
+        ]=[
+          [
+            [move(jorge,hogwarts,araluen),move(jorge,araluen,hyrule)],
+            10,
+            [onLocation(jorge,hyrule)]
+          ]
+        ]
+      )
+    ]) :-
+  % Setup
+  assert(heuristic(actionExecution(move(_,hogwarts, hyrule),_), 50) :- !),
+  assert(heuristic(_, 5)),
+  % Test
+  planAStar(
+    locationsDomain,
+    [onLocation(jorge, hogwarts)],
+    [onLocation(jorge, hyrule)],
+    heuristic,
+    Plan,
+    PlanCost,
+    FinalState
+  ),
+  % Teardown
+  retractall(heuristic(_, _)).
 
 test(deleteProblem) :- deleteProblem(locationsDomain).
 
@@ -61,14 +108,60 @@ test(problemDefinition) :-
 
 test(endProblemDefinition) :- endProblemDefinition(locationsDomain).
 
-test(planExecution, [all([Plan,FinalState]=[[move(merlin,pallet_city,alagaesia)]])]) :-
-  planExecution(
+test(plan, [
+      all(
+        [
+          Plan,
+          FinalState
+        ]=[
+          [
+            [move(merlin,pallet_city,grand_line), move(merlin,grand_line,alagaesia)],
+            [onLocation(merlin,alagaesia)]
+          ],
+          [
+            [move(merlin,pallet_city,alagaesia)],
+            [onLocation(merlin,alagaesia)]
+          ]
+        ]
+      )
+    ]) :-
+  plan(
     locationsDomain,
     [onLocation(merlin, pallet_city)],
     [onLocation(merlin, alagaesia)],
     Plan,
     FinalState
   ).
+
+test(planAStar, [
+      all(
+        [
+          Plan,
+          PlanCost,
+          FinalState
+        ]=[
+          [
+            [move(merlin,pallet_city,alagaesia)],
+            5,
+            [onLocation(merlin,alagaesia)]
+          ]
+        ]
+      )
+    ]) :-
+  % Setup
+  assert(heuristic(_, 5)),
+  % Test
+  planAStar(
+    locationsDomain,
+    [onLocation(merlin, pallet_city)],
+    [onLocation(merlin, alagaesia)],
+    heuristic,
+    Plan,
+    PlanCost,
+    FinalState
+  ),
+  % Teardown
+  retractall(heuristic).
 
 test(deleteDomain) :- deleteDomain(locationsDomain).
 
