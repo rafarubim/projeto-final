@@ -25,9 +25,9 @@ test(endDomainDefinition) :-
     [person(P), location(L1), location(L2)],
     [L1 \== L2],
     [onLocation(P, L1)],
+    [],
     [onLocation(P, L1)], 
-    [onLocation(P, L2)],  
-    []
+    [onLocation(P, L2)]
   )),
   % Test
   endDomainDefinition(locationsDomain),
@@ -177,7 +177,7 @@ test(planAStar, [
     FinalState
   ),
   % Teardown
-  retractall(heuristic).
+  retractall(heuristic(_,_)).
 
 test(deleteDomain) :- deleteDomain(locationsDomain).
 

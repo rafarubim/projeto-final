@@ -24,29 +24,31 @@
  * 
  * actionSpec(
  *   move(P, L1, L2),                       % arg1-> Name of the action. All variables used in actionSpec 
- *                                          %        should be declared here (using them for prolog capabilities
- *                                          %        only may be an exception).
+ *                                          %        should be declared here (using them only for temporary
+ *                                          %        prolog calculations may be an exception).
  *   [person(P), location(X), location(Y)], % arg2-> Type declarations. All variables used in actionSpec should
  *                                          %        instantiated here to a domain type, in a list format.
  *   [X \== Y],                             % arg3-> Prolog conditions. This is a list of goals that use prolog
  *                                          %        capabilities (such as arithmetic and comparasion). The action
  *                                          %        can only execute if all of these are satisfied. Remember this
  *                                          %        is tested before anything else, and variables declared
- *                                          %        previously are already instantiated when these goals are 
- *                                          %        tested for. Just like in prolog, goal order matters.
+ *                                          %        previously in arg2 are already instantiated when these goals 
+ *                                          %        are tested for. Just like in prolog, goal order matters.
  *   [onLocation(P, L1)],                   % arg4-> Planner Preconditions. This is a list of planner facts that
  *                                          %        should be true for the action to execute. If you want to
  *                                          %        specify that a fact should not be true, you can use the
  *                                          %        "not(x)" predicate or the not operator "\+ x" with the fact.
- *   [onLocation(P, L1)],                   % arg5-> Removed facts. This is a list of facts that are removed if
+ *   [write("Moved person!")]               % arg5-> Prolog effects. This is a list of goals that are executed
+ *                                          %        if the action is executed. They execute regardless of their
+ *                                          %        success. This runs before the other effects, so it may be
+ *                                          %        useful to instantiate variables which were declared in arg3
+ *                                          %        and not arg2, like the ones that deal with numbers. This can
+ *                                          %        also be used to execute side effects, like printing.
+ *   [onLocation(P, L1)],                   % arg6-> Removed facts. This is a list of facts that are removed if
  *                                          %        the action is executed. "not(x)" and "\+ x" can't be used here.
- *   [onLocation(P, L2)],                   % arg6-> Added facts. This is a list of facts that are added if the
+ *   [onLocation(P, L2)],                   % arg7-> Added facts. This is a list of facts that are added if the
  *                                          %        action is executed. This always happens after the facts are
  *                                          %        removed. "not(x)" and "\+ x" can't be used here.
- *   [write("Moved person!")]               % arg7-> Prolog side effects. This is a list of goals that are executed
- *                                          %        if the action is executed. They execute regardless of their
- *                                          %        success. This should only be used for side effects, such as
- *                                          %        printing to the console.
  * ).
  * 
  * :- endDomainDefinition(domain_name).
@@ -134,32 +136,31 @@
 
 % -------------------- External and meta predicate interfaces
 
-% actionSpec(-Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
-%                     -RemovedFacts:list, -AddedFacts:list, -PrologSideEffects:list) is nondet
+% actionSpec(?Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
+%            -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
 % 
 % @arg Action The name of the action
 % @arg TypeSpecs Set of variable type instantiations
 % @arg PrologConditions Sequence of Prolog goals which are conditions for execution of Action
 % @arg Conditions Set of conditions of the action
+% @arg PrologSideEffects Prolog goals which are executed as an effect of the action, regardless of their success.
 % @arg RemovedActions Facts which are removed from the state as the effect of the action
 % @arg AddedActions Facts which are added to the state as the effect of the action
-% @arg PrologSideEffects Prolog goals which are executed as a side effect of the action, regardless of their success.
 %
 % True if all the arguments comply with the specification of a user-defined action
 
-% type(-Type:atom) is nondet
+% type(?Type:atom) is nondet
 % 
 % @arg Type Name of the type
 %
 % True if Type is a user-defined type
 
-% 'typeFunctor'(-Object:atom) is nondet
+% 'typeFunctor'(?Object:atom) is nondet
 % 
 % @arg Object Object instantiated to the type
 %
 %   'typeFunctor' is not an actual atom, but could be any atom the user defines as a type.
 % True if Object is instantiated to the 'typeFunctor' type.
-
 
 % planAStar's "Heuristic" meta predicate:
 % 'heuristic'(++ActionExecution, -Cost) is det
@@ -182,7 +183,7 @@
 :- meta_predicate planAStar(+,+,+,2,-,-,-).
 
 % actionSpec(++Namespace:atom, -Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
-%                     -RemovedFacts:list, -AddedFacts:list, -PrologSideEffects:list) is nondet
+%            -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
 %
 % Equivalent to the "external predicate" actionSpec/7, but with a "Namespace" atom as first argument.
 :- dynamic actionSpec/8.
@@ -413,11 +414,11 @@ emptyIntersection(SetA, SetB) :-
 satisfiedPrologGoalsList(GoalsList) :-
   maplist(call, GoalsList).
 
-% executeSideEffects(:SideEffectsList:list) is det
+% executePrologEffects(:EffectsList:list) is det
 %
-% All goals in SideEffectsList are called, regardless of their success.
-executeSideEffects(SideEffectsList) :-
-  maplist(ignore, SideEffectsList).
+% All goals in EffectsList are called, regardless of their success.
+executePrologEffects(EffectsList) :-
+  maplist(ignore, EffectsList).
 
 % separatedGoals(+Goals:list, -InclusionGoals:list, -AbscenceGoals:list) is det
 %
@@ -474,15 +475,15 @@ updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts) :-
 % NewFacts is the resulting set after applying the Action. NewFacts must have a
 % specific order.
 allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
-  actionSpec(Namespace, Action, TypeSpecs, PrologConditions, Conditions, RemovedFacts, AddedFacts, PrologSideEffects),
+  actionSpec(Namespace, Action, TypeSpecs, PrologConditions, Conditions, PrologEffects, RemovedFacts, AddedFacts),
   typeSpecsWithNamespace(Namespace, TypeSpecs, TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(PrologConditions),
   separatedGoals(Conditions, InclusionConditions, AbscenceConditions),
   subsetOf(InclusionConditions, Facts),
   emptyIntersection(AbscenceConditions, Facts),
-  updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts),
-  executeSideEffects(PrologSideEffects).
+  executePrologEffects(PrologEffects),
+  updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts).
 
 % satisfiedPlannerGoals(++Facts:list, ++Goals:list) is semidet
 %
