@@ -11,7 +11,7 @@
  * 
  *   You begin defining a domain. To do it, you must define all its types and actions. This is done by
  * defining your own predicates and passing them to the planning module in the runtime. Types are defined in the
- * argument of "type/1" facts. Actions are defined through the arguments of "actionSpec/7" facts. An example is
+ * argument of "type/1" facts. Actions are defined through the arguments of "actionSpec/8" facts. An example is
  * shown below, explaining each argument of the action specification. You can also check the "External predicate
  * interfaces" in the docs below.
  * 
@@ -38,15 +38,17 @@
  *                                          %        should be true for the action to execute. If you want to
  *                                          %        specify that a fact should not be true, you can use the
  *                                          %        "not(x)" predicate or the not operator "\+ x" with the fact.
- *   [write("Moved person!")]               % arg5-> Prolog effects. This is a list of goals that are executed
+ *   [],                                    % arg5-> More Prolog conditions. This is the same as arg3, but executes
+ *                                          %        after the goals in arg4, which may instantiate some variable.
+ *   [write("Moved person!")]               % arg6-> Prolog effects. This is a list of goals that are executed
  *                                          %        if the action is executed. They execute regardless of their
  *                                          %        success. This runs before the other effects, so it may be
  *                                          %        useful to instantiate variables which were declared in arg3
  *                                          %        and not arg2, like the ones that deal with numbers. This can
  *                                          %        also be used to execute side effects, like printing.
- *   [onLocation(P, L1)],                   % arg6-> Removed facts. This is a list of facts that are removed if
+ *   [onLocation(P, L1)],                   % arg7-> Removed facts. This is a list of facts that are removed if
  *                                          %        the action is executed. "not(x)" and "\+ x" can't be used here.
- *   [onLocation(P, L2)],                   % arg7-> Added facts. This is a list of facts that are added if the
+ *   [onLocation(P, L2)],                   % arg8-> Added facts. This is a list of facts that are added if the
  *                                          %        action is executed. This always happens after the facts are
  *                                          %        removed. "not(x)" and "\+ x" can't be used here.
  * ).
@@ -137,12 +139,13 @@
 % -------------------- External and meta predicate interfaces
 
 % actionSpec(?Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
-%            -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
+%            -MorePrologConditions:list, -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
 % 
 % @arg Action The name of the action
 % @arg TypeSpecs Set of variable type instantiations
 % @arg PrologConditions Sequence of Prolog goals which are conditions for execution of Action
 % @arg Conditions Set of conditions of the action
+% @arg MorePrologConditions The same as PrologConditions, but it executes after Conditions does.
 % @arg PrologSideEffects Prolog goals which are executed as an effect of the action, regardless of their success.
 % @arg RemovedActions Facts which are removed from the state as the effect of the action
 % @arg AddedActions Facts which are added to the state as the effect of the action
@@ -183,10 +186,10 @@
 :- meta_predicate planAStar(+,+,+,2,-,-,-).
 
 % actionSpec(++Namespace:atom, -Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
-%            -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
+%            -MorePrologConditions:list, -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
 %
-% Equivalent to the "external predicate" actionSpec/7, but with a "Namespace" atom as first argument.
-:- dynamic actionSpec/8.
+% Equivalent to the "external predicate" actionSpec/8, but with a "Namespace" atom as first argument.
+:- dynamic actionSpec/9.
 
 % type(++Namespace:atom, -Type:atom) is nondet
 %
@@ -204,7 +207,7 @@
 beginDomainDefinition(Namespace) :-
   % Capture "actionSpec" definitions
   namespaceOfActionSpec(Namespace, ActionSpecNamespace),
-  beginGetRuntimeClauses(ActionSpecNamespace, actionSpec(_,_,_,_,_,_,_), true),
+  beginGetRuntimeClauses(ActionSpecNamespace, actionSpec(_,_,_,_,_,_,_,_), true),
   % Capture "type" definitions
   namespaceOfType(Namespace, TypeNamespace),
   beginGetRuntimeClauses(TypeNamespace, type(_), true).
@@ -219,7 +222,7 @@ beginDomainDefinition(Namespace) :-
 % are asserted in the planning module with an extra first argument in their head's compound
 % term: Namespace.  
 endDomainDefinition(Namespace) :-
-  % Assert local "actionSpec/8" predicates with a Namespace
+  % Assert local "actionSpec/9" predicates with a Namespace
   namespaceOfActionSpec(Namespace, ActionSpecNamespace),
   endGetRuntimeClauses(ActionSpecNamespace, ActionSpecClauses),
   length(ActionSpecClauses, ActionSpecLength),
@@ -238,11 +241,11 @@ endDomainDefinition(Namespace) :-
 % deleteDomain(++Namespace:atom) is det
 %
 % This deletes the problem associated to the Namespace, domain, if there's one. It also
-% deletes all local "actionSpec/8" and "type/2" predicates associated to Namespace, which
+% deletes all local "actionSpec/9" and "type/2" predicates associated to Namespace, which
 % are the domain itself.
 deleteDomain(Namespace) :-
   deleteProblem(Namespace),
-  retractall(actionSpec(Namespace,_,_,_,_,_,_,_)),
+  retractall(actionSpec(Namespace,_,_,_,_,_,_,_,_)),
   retractall(type(Namespace, _)).
 
 % beginProblemDefinition(++Namespace:atom) is det
@@ -477,13 +480,14 @@ updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts) :-
 % NewFacts is the resulting set after applying the Action. NewFacts must have a
 % specific order.
 allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
-  actionSpec(Namespace, Action, TypeSpecs, PrologConditions, Conditions, PrologEffects, RemovedFacts, AddedFacts),
+  actionSpec(Namespace, Action, TypeSpecs, PrologConditions, Conditions, MorePrologConditions, PrologEffects, RemovedFacts, AddedFacts),
   typeSpecsWithNamespace(Namespace, TypeSpecs, TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(PrologConditions),
   separatedGoals(Conditions, InclusionConditions, AbscenceConditions),
   subsetOf(InclusionConditions, Facts),
   emptyIntersection(AbscenceConditions, Facts),
+  satisfiedPrologGoalsList(MorePrologConditions),
   executePrologEffects(PrologEffects),
   updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts).
 

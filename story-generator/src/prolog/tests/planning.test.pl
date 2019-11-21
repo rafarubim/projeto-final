@@ -26,6 +26,7 @@ test(endDomainDefinition) :-
     [L1 \== L2],
     [onLocation(P, L1)],
     [],
+    [],
     [onLocation(P, L1)], 
     [onLocation(P, L2)]
   )),
