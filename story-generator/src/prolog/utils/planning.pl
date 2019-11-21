@@ -232,6 +232,7 @@ endDomainDefinition(Namespace) :-
   length(TypeClauses, TypeLength),
   findall(Namespace, between(1,TypeLength,_), TypeNamespaces),
   maplist(planning:clauseWithNamespace, TypeNamespaces, TypeClauses, TypeClausesWithNamespace),
+  maplist(planning:retractall, TypeClausesWithNamespace),
   maplist(planning:assertClause, TypeClausesWithNamespace).
 
 % deleteDomain(++Namespace:atom) is det
@@ -340,6 +341,7 @@ endOneTypeFunctor(Namespace) :-
   length(TypeFunctorClauses, TypeFunctorLength),
   findall(Namespace, between(1,TypeFunctorLength,_), TypeFunctorNamespaces),
   maplist(planning:clauseWithNamespace, TypeFunctorNamespaces, TypeFunctorClauses, TypeFunctorClausesWithNamespace),
+  maplist(planning:retractall, TypeFunctorClausesWithNamespace),
   maplist(planning:assertClause, TypeFunctorClausesWithNamespace).
 
 % deleteOneTypeFunctor(++Namespace:atom) is nondet
