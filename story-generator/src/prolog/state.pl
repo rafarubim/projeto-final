@@ -4,6 +4,12 @@
 :- use_module(enumeration).
 
 % signatureSpec(?StateTypeName, ?ArgsSpec).
+%
+% entityArg(entityType)
+% scalarArg(scalarType)
+% stateArg(stateType)
+% eventArg(eventType)
+
 signatureSpec(knows, [
   entityArg(character),
   entityArg(character)
@@ -17,6 +23,14 @@ signatureSpec(standsIn, [
   entityArg(building),
   entityArg(place)
 ]).
+signatureSpec(isIn, [
+    entityArg(character),
+    entityArg(place)
+  ]).
+signatureSpec(tiredLevel, [
+    entityArg(character),
+    scalarArg(number)
+  ]).
 signatureSpec(hasColor, [
   entityArg(owl),
   scalarArg(color)
