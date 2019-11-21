@@ -1,4 +1,4 @@
-:- module(monkey, [monkeyPlan/1, monkeyAStarPlan/1]).
+:- module(monkey, [monkeyAStarPlan/1]).
 
 :- use_module("utils/planning").
 % PLANNER EXAMPLE
