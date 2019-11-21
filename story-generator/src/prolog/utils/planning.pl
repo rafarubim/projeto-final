@@ -295,7 +295,7 @@ plan(Namespace, Facts, Goals, Plan, FinalFacts) :-
   planWithForbiddenStates(Namespace, Facts, Goals, Plan, [Facts], FinalFacts).
 
 
-% planAStar(++Namespace:atom, ++Facts:list, ++Goals:list, :Heuristic:atom, -Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
+% planAStar(++Namespace:atom, ++Facts:list, ++Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
 % 
 % @arg Namespace This could be any atom. The Namespace used here should match the one used in "endDomainDefinition" and "endProblemDefinition".
 %
@@ -308,7 +308,7 @@ planAStar(_, Facts, Goals, _, [], 0, Facts) :-
 planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts) :-
   empty_heap(Heap),
   add_to_heap(Heap, 0, halfPlanExecution([], Facts), MiddleHeap),
-  openNonForbiddenActionsInHeap(Namespace, [Facts], Heuristic, MiddleHeap, NewHeap, _),
+  openNonForbiddenActionsInHeap(Namespace, [Facts], Heuristic, -1, MiddleHeap, NewHeap, _),
   \+ empty_heap(NewHeap),
   planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts], ReversePlan, PlanCost, FinalFacts),
   reverse(ReversePlan, Plan).
@@ -532,11 +532,10 @@ planWithForbiddenStates(Namespace, Facts, Goals, [FirstAction|RestOfPlan], Forbi
 % by associating costs to each action. That also determines the total PlanCost, which is returned. FinalFacts is the set of facts that remain after the plan
 % is executed.
 planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts) :-
-  min_of_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts)),
+  min_of_heap(Heap, PlanCost, halfPlanExecution(HalfPlan, Facts)),
   satisfiedPlannerGoals(Facts, Goals),
   (
     Plan = HalfPlan,
-    PlanCost = HalfPlanCost,
     FinalFacts = Facts
   ;
     !, % red cut
@@ -544,7 +543,13 @@ planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, F
     planAStar_(Namespace, PopedHeap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts)
   ).
 planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, FinalFacts) :-
-  openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, Heap, NewHeap, OpenedFacts),
+  (
+    var(PlanCost),
+    openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, -1, Heap, NewHeap, OpenedFacts)
+  ;
+    nonvar(PlanCost),
+    openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, PlanCost, Heap, NewHeap, OpenedFacts)
+  ),
   \+ empty_heap(NewHeap),
   planAStar_(Namespace, NewHeap, Goals, Heuristic, [OpenedFacts|ForbiddenStates], Plan, PlanCost, FinalFacts).
 
@@ -554,16 +559,17 @@ planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, F
 % @arg ForbiddenStates List of fact sets that were already opened in a previous heap opening. Plans that achieve the same set of facts shouldn't
 %                      be added to heap again.
 % @arg Heuristic Meta predicate that receives an actionExecution and returns its cost, so it can be added to the heap's planExecutions.
+% @arg MaxCost Max cost the new halfPlanExecutions can have. -1 stands for infinity.
 %
 %   This assumes the Heap is not empty. Heap contains halfPlanExecution(HalfPlan, OpenedFacts). This predicate removes
 % the highest priority entry (lowest value), computates all valid next actions and adds them to the Heap as new
 % halfPlanExecutions. It returns the new heap in NewHeap and the facts that resulted from the opened halfPlanExecution
 % in OpenedFacts.
-openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, Heap, NewHeap, OpenedFacts) :-
+openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, MaxCost, Heap, NewHeap, OpenedFacts) :-
   get_from_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, OpenedFacts), PopedHeap),
   findall(actionExecution(Action, ObtainedFacts), allowedActionExecution(Namespace, Action, OpenedFacts, ObtainedFacts), AllActionExecutions),
   filterNonForbiddenActionExecutions(AllActionExecutions, ForbiddenStates, NonForbiddenActions),
-  addPlanExecutionsToHeap(NonForbiddenActions, Heuristic, HalfPlanCost, HalfPlan, PopedHeap, NewHeap).
+  addPlanExecutionsToHeap(NonForbiddenActions, Heuristic, MaxCost, HalfPlanCost, HalfPlan, PopedHeap, NewHeap).
 
 % filterNonForbiddenActionExecutions(++ActionExecutions:list, ++ForbiddenStates:list, -NonForbiddenActionExecutions:list) is det
 % 
@@ -577,20 +583,26 @@ filterNonForbiddenActionExecutions([actionExecution(_, ObtainedFacts)|RestOfActi
 filterNonForbiddenActionExecutions([actionExecution(Action, ObtainedFacts)|RestOfActionExecutions], ForbiddenStates, [actionExecution(Action, ObtainedFacts)|RestOfNonForbiddenActionExecutions]) :-
   filterNonForbiddenActionExecutions(RestOfActionExecutions, ForbiddenStates, RestOfNonForbiddenActionExecutions).
 
-% addPlanExecutionsToHeap(++ActionExecutions:list, :Heuristic:atom, ++HalfPlanCost:number, ++HalfPlan:list, ++Heap:heap, NewHeap:heap) is det
+% addPlanExecutionsToHeap(++ActionExecutions:list, :Heuristic:atom, ++MaxCost:number, ++HalfPlanCost:number, ++HalfPlan:list, ++Heap:heap, NewHeap:heap) is det
 % 
 %   Receives a Heap of halfPlanExecution(HalfPlan:list, ObtainedFacts:list) and an ActionExecutions list of
 % actionExecution(Action:compound_term, ObtainedFacts:list). The meta predicate Heuristic is called for each actionExecution, retrieving
 % the costOfAction of that action. Adds new halfPlanExecutions to the heap for each actionExecution, with priority equal to TotalCost =
-% HalfPlanCost + costOfAction. Each new halfPlan is the HalfPlan with the Action as the head of the list (the plans are reversed). Note
-% that the heap addition only happens if there is no entry in the heap which already contains an equivalent ObtainedFacts set and better
-% cost (lower priority).
-addPlanExecutionsToHeap([], _, _, _, Heap, Heap).
-addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActionExecutions], Heuristic, HalfPlanCost, HalfPlan, Heap, NewHeap) :-
+% HalfPlanCost + costOfAction. It doesn't get added if it is greater than MaxCost. MaxCost == -1 stands for infinity, so there is no limit.
+% Each new halfPlan is the HalfPlan with the Action as the head of the list (the plans are reversed). Note that the heap addition only
+% happens if there is no entry in the heap which already contains an equivalent ObtainedFacts set and better cost (lower priority).
+addPlanExecutionsToHeap([], _, _, _, _, Heap, Heap).
+addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActionExecutions], Heuristic, MaxCost, HalfPlanCost, HalfPlan, Heap, NewHeap) :-
   call(Heuristic, actionExecution(Action, ObtainedFacts), Cost),
   TotalCost is HalfPlanCost + Cost,
+  (
+    MaxCost == -1
+  ;
+    MaxCost \== -1,
+    TotalCost =< MaxCost
+  ),
   addHalfPlanToHeapIfBetterOrEqual(Heap, TotalCost, halfPlanExecution([Action|HalfPlan], ObtainedFacts), MiddleHeap),
-  addPlanExecutionsToHeap(RestOfActionExecutions, Heuristic, HalfPlanCost, HalfPlan, MiddleHeap, NewHeap).
+  addPlanExecutionsToHeap(RestOfActionExecutions, Heuristic, MaxCost, HalfPlanCost, HalfPlan, MiddleHeap, NewHeap).
 
 % addHalfPlanToHeapIfBetterOrEqual(++Heap:heap, ++HalfPlanCost:number, ++HalfPlanExecution:compound_term, -NewHeap:heap) is det
 % 
@@ -601,6 +613,7 @@ addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActionExec
 % HalfPlanExecution is simply added and nothing is replaced or removed. The new heap is returned in NewHeap.
 addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, HalfPlanExecution, NewHeap) :-
   empty_heap(Heap), !, % red cut
+  %write("Adding new: "), write(HalfPlanExecution), nl,
   add_to_heap(Heap, HalfPlanCost, HalfPlanExecution, NewHeap).
 addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap) :-
   get_from_heap(Heap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), PopedHeap),
@@ -610,12 +623,16 @@ addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, halfPlanExecution(HalfPlan,
       HalfPlanCost =:= PopedCost, !, % green cut
       add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), MiddleHeap),
       add_to_heap(MiddleHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
+      %write("Adding1: "), write(HalfPlan), nl,
+      %write("Returning: "), write(PopedHalfPlan), nl
     ;
       HalfPlanCost < PopedCost, !, % green cut
       add_to_heap(PopedHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
+      %write("Replacing: "), write(HalfPlan), nl
     ;
       HalfPlanCost > PopedCost,
       add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), NewHeap)
+      %write("No additon of: "), write(HalfPlan), nl
     )
   ;
     % \+ equivalentTo(PopedFacts, Facts)
