@@ -225,16 +225,12 @@ endDomainDefinition(Namespace) :-
   % Assert local "actionSpec/9" predicates with a Namespace
   namespaceOfActionSpec(Namespace, ActionSpecNamespace),
   endGetRuntimeClauses(ActionSpecNamespace, ActionSpecClauses),
-  length(ActionSpecClauses, ActionSpecLength),
-  findall(Namespace, between(1,ActionSpecLength,_), ActionSpecNamespaces),
-  maplist(planning:clauseWithNamespace, ActionSpecNamespaces, ActionSpecClauses, ActionSpecClausesWithNamespace),
+  maplist(planning:clauseWithNamespace(Namespace), ActionSpecClauses, ActionSpecClausesWithNamespace),
   maplist(planning:assertClause, ActionSpecClausesWithNamespace),
   % Assert local "type/2" predicates with a Namespace
   namespaceOfType(Namespace, TypeNamespace),
   endGetRuntimeClauses(TypeNamespace, TypeClauses),
-  length(TypeClauses, TypeLength),
-  findall(Namespace, between(1,TypeLength,_), TypeNamespaces),
-  maplist(planning:clauseWithNamespace, TypeNamespaces, TypeClauses, TypeClausesWithNamespace),
+  maplist(planning:clauseWithNamespace(Namespace), TypeClauses, TypeClausesWithNamespace),
   maplist(planning:retractall, TypeClausesWithNamespace),
   maplist(planning:assertClause, TypeClausesWithNamespace).
 
@@ -341,9 +337,7 @@ endOneTypeFunctor(Namespace) :-
   type(Namespace, TypeFunctor),
   namespaceOfTypeFunctor(TypeFunctor, Namespace, TypeFunctorNamespace),
   endGetRuntimeClauses(TypeFunctorNamespace, TypeFunctorClauses),
-  length(TypeFunctorClauses, TypeFunctorLength),
-  findall(Namespace, between(1,TypeFunctorLength,_), TypeFunctorNamespaces),
-  maplist(planning:clauseWithNamespace, TypeFunctorNamespaces, TypeFunctorClauses, TypeFunctorClausesWithNamespace),
+  maplist(planning:clauseWithNamespace(Namespace), TypeFunctorClauses, TypeFunctorClausesWithNamespace),
   maplist(planning:retractall, TypeFunctorClausesWithNamespace),
   maplist(planning:assertClause, TypeFunctorClausesWithNamespace).
 
@@ -440,21 +434,6 @@ separatedGoals(Goals, InclusionGoals, AbscenceGoals) :-
   partition(isNegation, Goals, Negations, InclusionGoals),
   maplist(negation, AbscenceGoals, Negations).
 
-% typeSpecsWithNamespace(++Namespace:atom, ++TypeSpecs:list, -TypeSpecsWithNamespace:list) is det
-% 
-% @arg Namespace This could be any atom. The Namespace used here should match the
-%                one used in "endDomainDefinition" and "endProblemDefinition".
-% @arg TypeSpecs A list of terms which declare object types.
-% @arg TypeSpecsWithNamespace The same list as TypeSpecs, but with an extra first argument in
-%                             each of its terms: Namespace.
-% 
-% True if TypeSpecsWithNamespace is the same list as TypeSpecs, but with an extra first argument in
-% each of its terms: Namespace.
-typeSpecsWithNamespace(Namespace, TypeSpecs, TypeSpecsWithNamespace) :-
-  length(TypeSpecs, TypeSpecsLength),
-  findall(Namespace, between(1, TypeSpecsLength, _), Namespaces),
-  maplist(termWithNamespace, Namespaces, TypeSpecs, TypeSpecsWithNamespace).
-
 % updatedFacts(++Facts:list, ++RemovedFacts:list, ++AddedFacts:list, -NewFacts:list) is multi
 %
 % @arg Facts A set of facts.
@@ -481,7 +460,7 @@ updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts) :-
 % specific order.
 allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
   actionSpec(Namespace, Action, TypeSpecs, PrologConditions, Conditions, MorePrologConditions, PrologEffects, RemovedFacts, AddedFacts),
-  typeSpecsWithNamespace(Namespace, TypeSpecs, TypeSpecsWithNamespace),
+  maplist(termWithNamespace(Namespace), TypeSpecs, TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(PrologConditions),
   separatedGoals(Conditions, InclusionConditions, AbscenceConditions),
