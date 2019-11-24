@@ -179,6 +179,7 @@
 
 :- use_module(set).
 :- use_module(getRuntimeClauses).
+:- use_module(assertRuntimeClauses).
 
 :- module_transparent([beginDomainDefinition/1]).
 :- module_transparent([beginProblemDefinition/1]).
@@ -203,36 +204,20 @@
 % @arg Namespace Could be any atom. Will be the same to be used by the corresponding
 %                "endDomainDefinition".
 % 
-% This calls "beginGetRuntimeClauses" for "actionSpec" and "type" clauses.
+% This calls "beginAssertRuntimeClauses" for "actionSpec" and "type" clauses.
 beginDomainDefinition(Namespace) :-
-  % Capture "actionSpec" definitions
-  namespaceOfActionSpec(Namespace, ActionSpecNamespace),
-  beginGetRuntimeClauses(ActionSpecNamespace, actionSpec(_,_,_,_,_,_,_,_), true),
-  % Capture "type" definitions
-  namespaceOfType(Namespace, TypeNamespace),
-  beginGetRuntimeClauses(TypeNamespace, type(_), true).
-
+  beginAssertRuntimeClauses(planning, [actionSpec/8, type/1], Namespace).
 
 % endDomainDefinition(++Namespace:atom) is det
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "beginDomainDefinition".
 % 
-% This calls "endGetRuntimeClauses"  for "actionSpec" and "type" clauses. These clauses
+% This calls "endAssertRuntimeClauses"  for "actionSpec" and "type" clauses. These clauses
 % are asserted in the planning module with an extra first argument in their head's compound
 % term: Namespace.  
 endDomainDefinition(Namespace) :-
-  % Assert local "actionSpec/9" predicates with a Namespace
-  namespaceOfActionSpec(Namespace, ActionSpecNamespace),
-  endGetRuntimeClauses(ActionSpecNamespace, ActionSpecClauses),
-  maplist(planning:clauseWithNamespace(Namespace), ActionSpecClauses, ActionSpecClausesWithNamespace),
-  maplist(planning:assertClause, ActionSpecClausesWithNamespace),
-  % Assert local "type/2" predicates with a Namespace
-  namespaceOfType(Namespace, TypeNamespace),
-  endGetRuntimeClauses(TypeNamespace, TypeClauses),
-  maplist(planning:clauseWithNamespace(Namespace), TypeClauses, TypeClausesWithNamespace),
-  maplist(planning:retractall, TypeClausesWithNamespace),
-  maplist(planning:assertClause, TypeClausesWithNamespace).
+  endAssertRuntimeClauses(Namespace).
 
 % deleteDomain(++Namespace:atom) is det
 %
@@ -249,24 +234,23 @@ deleteDomain(Namespace) :-
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "endDomainDefinition".
 % 
-% This calls "beginGetRuntimeClauses" for each type/2 definition with a type functor, for
+% This calls "beginAssertRuntimeClauses" with all type/2 definition with a type functor, for
 % these type functors' clauses.
 beginProblemDefinition(Namespace) :-
-  context_module(Context),
-  % Capture all type functor definitions
-  findall(_, planning:beginOneTypeFunctor(Context, Namespace), _).
+  findall(TypeFunctor/1, planning:type(Namespace, TypeFunctor), TypePredicates),
+  beginAssertRuntimeClauses(planning, TypePredicates, Namespace).
 
 % endProblemDefinition(++Namespace:atom) is nondet
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "endDomainDefinition".
 % 
-% This calls "endGetRuntimeClauses" for each type/2 definition with a type functor, for
+% This calls "endAssertRuntimeClauses" with all type/2 definition with a type functor, for
 % these type functors' clauses. These clauses are asserted in the planning module with
 % an extra first argument in their head's compound term: Namespace.  
 endProblemDefinition(Namespace) :-
   % Assert local type functor predicates with a Namespace
-  findall(_, planning:endOneTypeFunctor(Namespace), _).
+  endAssertRuntimeClauses(Namespace).
 
 % deleteProblem(++Namespace:atom) is det
 %
@@ -311,36 +295,6 @@ planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts) :-
 
 % -------------------- Private predicates
 
-% beginOneTypeFunctor(++Context:atom, ++Namespace:atom) is nondet
-% 
-% @arg Context Name of the module that defined the type functors.
-% @arg Namespace Could be any atom. Must be the same that was used by the corresponding
-%                "endDomainDefinition" and will be used by "endProblemDefinition".
-% 
-% True if a type/2 definition exists with a type functor. This calls "beginGetRuntimeClauses"
-% for that type functor's clauses.
-beginOneTypeFunctor(Context, Namespace) :-
-  type(Namespace, TypeFunctor),
-  namespaceOfTypeFunctor(TypeFunctor, Namespace, TypeFunctorNamespace),
-  TypeHeadTerm =.. [TypeFunctor, _],
-  beginGetRuntimeClauses(TypeFunctorNamespace, Context:TypeHeadTerm, _).
-
-% endOneTypeFunctor(++Namespace:atom) is nondet
-% 
-% @arg Namespace Could be any atom. Must be the same that was used by the corresponding
-%                "endDomainDefinition".
-% 
-% True if a type/2 definition exists with a type functor. This calls "endGetRuntimeClauses"
-% for that type functor's clauses. These clauses are asserted in the planning module with
-% an extra first argument in their head's compound term: Namespace.  
-endOneTypeFunctor(Namespace) :-
-  type(Namespace, TypeFunctor),
-  namespaceOfTypeFunctor(TypeFunctor, Namespace, TypeFunctorNamespace),
-  endGetRuntimeClauses(TypeFunctorNamespace, TypeFunctorClauses),
-  maplist(planning:clauseWithNamespace(Namespace), TypeFunctorClauses, TypeFunctorClausesWithNamespace),
-  maplist(planning:retractall, TypeFunctorClausesWithNamespace),
-  maplist(planning:assertClause, TypeFunctorClausesWithNamespace).
-
 % deleteOneTypeFunctor(++Namespace:atom) is nondet
 %
 % True if a type/2 definition exists with a type functor. This deletes all local predicates
@@ -350,44 +304,12 @@ deleteOneTypeFunctor(Namespace) :-
   TypeFunctorTerm =.. [TypeFunctor, Namespace, _],
   retractall(TypeFunctorTerm).
 
-% namespaceOfActionSpec(++Namespace:atom, -ActionSpecNamespace:atom) is det
-%
-% True if ActionSpecNamespace is the namespace associated to the actionSpec predicate.
-namespaceOfActionSpec(Namespace, ActionSpecNamespace) :-
-  atom_concat('actionSpec--', Namespace, ActionSpecNamespace).
-
-% namespaceOfType(++Namespace:atom, -TypeNamespace:atom) is det
-%
-% True if TypeNamespace is the namespace associated to the type predicate.
-namespaceOfType(Namespace, TypeNamespace) :-
-  atom_concat('type--', Namespace, TypeNamespace).
-
-% namespaceOfTypeFunctor(++TypeFunctor:atom, ++Namespace:atom, -TypeFunctorNamespace:atom) is det
-%
-% True if TypeFunctorNamespace is the namespace associated to the TypeFunctor predicate.
-namespaceOfTypeFunctor(TypeFunctor, Namespace, TypeFunctorNamespace) :-
-  atomic_list_concat([TypeFunctor, '--', Namespace], TypeFunctorNamespace).
-
-% clauseWithNamespace(++Namespace:atom, +Clause:clause, -ClauseWithNamespace:clause) is det
-%
-% True if ClauseWithNamespace is equal to the Clause with an extra first argument in the head's
-% term: Namespace.
-clauseWithNamespace(Namespace, Head:-Body, NewHead:-Body) :-
-  Head =.. [Functor|Args],
-  NewHead =.. [Functor,Namespace|Args].
-
 % termWithNamespace(++Namespace:atom, +Term:compound_term, -TermWithNamespace:compound_term) is det
 %
 % True if TermWithNamespace is equal to the Term with an extra first argument: Namespace.
 termWithNamespace(Namespace, Term, TermWithNamespace) :-
   Term =.. [Functor|Args],
   TermWithNamespace =.. [Functor,Namespace|Args].
-
-% assertClause(+Clause:clause) is det
-%
-% Asserts the clause within the planning module, regardless of the caller context module.
-assertClause(Clause) :-
-  assert(Clause).
 
 % negation(?Term:any, ?NegatedTerm:any) is semidet
 %
