@@ -178,7 +178,7 @@
 % -------------------- End of external and meta predicate interfaces
 
 :- use_module(set).
-:- use_module(assertRuntimeClauses).
+:- use_module(assertRuntimeTerms).
 
 :- module_transparent([beginDomainDefinition/1, beginProblemDefinition/1]).
 
@@ -202,20 +202,20 @@
 % @arg Namespace Could be any atom. Will be the same to be used by the corresponding
 %                "endDomainDefinition".
 % 
-% This calls "beginAssertRuntimeClauses" for "actionSpec" and "type" clauses.
+% This calls "beginAssertRuntimeTerms" for "actionSpec" and "type" clauses.
 beginDomainDefinition(Namespace) :-
-  beginAssertRuntimeClauses(planning, [actionSpec/8, type/1], Namespace).
+  beginAssertRuntimeTerms(planning, [actionSpec/8, type/1], Namespace).
 
 % endDomainDefinition(++Namespace:atom) is det
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "beginDomainDefinition".
 % 
-% This calls "endAssertRuntimeClauses"  for "actionSpec" and "type" clauses. These clauses
+% This calls "endAssertRuntimeTerms"  for "actionSpec" and "type" clauses. These clauses
 % are asserted in the planning module with an extra first argument in their head's compound
 % term: Namespace.  
 endDomainDefinition(Namespace) :-
-  endAssertRuntimeClauses(Namespace).
+  endAssertRuntimeTerms(Namespace).
 
 % deleteDomain(++Namespace:atom) is det
 %
@@ -232,23 +232,23 @@ deleteDomain(Namespace) :-
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "endDomainDefinition".
 % 
-% This calls "beginAssertRuntimeClauses" with all type/2 definition with a type functor, for
+% This calls "beginAssertRuntimeTerms" with all type/2 definition with a type functor, for
 % these type functors' clauses.
 beginProblemDefinition(Namespace) :-
   findall(TypeFunctor/1, planning:type(Namespace, TypeFunctor), TypePredicates),
-  beginAssertRuntimeClauses(planning, TypePredicates, Namespace).
+  beginAssertRuntimeTerms(planning, TypePredicates, Namespace).
 
 % endProblemDefinition(++Namespace:atom) is nondet
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "endDomainDefinition".
 % 
-% This calls "endAssertRuntimeClauses" with all type/2 definition with a type functor, for
+% This calls "endAssertRuntimeTerms" with all type/2 definition with a type functor, for
 % these type functors' clauses. These clauses are asserted in the planning module with
 % an extra first argument in their head's compound term: Namespace.  
 endProblemDefinition(Namespace) :-
   % Assert local type functor predicates with a Namespace
-  endAssertRuntimeClauses(Namespace).
+  endAssertRuntimeTerms(Namespace).
 
 % deleteProblem(++Namespace:atom) is det
 %
