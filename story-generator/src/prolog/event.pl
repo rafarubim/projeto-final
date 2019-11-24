@@ -1,12 +1,12 @@
-:- module(events, [merlinPlan/3]).
+:- module(event, [merlinPlan/3]).
 
 % eventTypeSpec(EventName:compound_term, Entity)
 :- use_module('utils/set').
 :- use_module(state).
 :- use_module('utils/planning').
+
 /*
 :- beginDomainDefinition(events).
-
 actionSpec(
   move(Char, Plc1, Plc2, Level, NewLevel),
   [],
@@ -19,12 +19,15 @@ actionSpec(
 ).
 :- endDomainDefinition(events).
 */
+
 eventSpec(
-  move(Char, Plc1, Plc2, Level, NewLevel), % event name
-  [isIn(Char, Plc1), tiredLevel(Char, Level)], % 
-  [Plc1 \== Plc2, NewLevel is Level + 10],
-  [isIn(Char, Plc1), tiredLevel(Char, Level)],
-  [isIn(Char, Plc2), tiredLevel(Char, NewLevel)]
+  move(Char, Plc1, Plc2, Level, NewLevel),  	    % Event name
+  [isIn(Char, Plc1), tiredLevel(Char, Level)],    % State Conditions
+  [Plc1 \== Plc2, NewLevel is Level + 10],        % Prolog Conditions
+  [],                                             % Trigger Conditions
+  0,                                              % Duration
+  [isIn(Char, Plc1), tiredLevel(Char, Level)],    % Removed States
+  [isIn(Char, Plc2), tiredLevel(Char, NewLevel)]  % Added States
 ).
 
 ignoreNonDet(Goal) :-
@@ -32,21 +35,24 @@ ignoreNonDet(Goal) :-
 ignoreNonDet(Goal) :-
   \+ Goal.
 
-instancedAssertion(Assertion, events:ignoreNonDet(state:respectsSignature(Assertion, _))).
+instancedState(Assertion, events:ignoreNonDet(state:respectsSignature(Assertion, _))).
 
 eventToActionSpec(EventSpecTerm, ActionSpecTerm) :-
-  EventSpecTerm =.. [eventSpec, EventName, Conditions, PrologConditions, Retractions, Assertions],
-  maplist(instancedAssertion, Assertions, InstancedAssertions),
-  append([InstancedAssertions, PrologConditions], MorePrologConditions),
-  ActionSpecTerm =.. [actionSpec, EventName, [], [], Conditions, MorePrologConditions, [], Retractions, Assertions].
+  EventSpecTerm =.. [eventSpec, EventName, StateConditions, PrologConditions, _, _, Retractions, Assertions],
+  maplist(instancedState, Retractions, InstancedRetractions),
+  maplist(instancedState, Assertions, InstancedAssertions),
+  append([InstancedRetractions, InstancedAssertions, PrologConditions], MorePrologConditions),
+  ActionSpecTerm =.. [actionSpec, EventName, [], [], StateConditions, MorePrologConditions, [], Retractions, Assertions].
 
 createActionSpecs :-
   beginDomainDefinition(events),
   eventToActionSpec(
     eventSpec(
-      move(Char, Plc1, Plc2, Level, NewLevel), % event name
-      [isIn(Char, Plc1), tiredLevel(Char, Level)], % 
+      move(Char, Plc1, Plc2, Level, NewLevel),
+      [isIn(Char, Plc1), tiredLevel(Char, Level)],
       [Plc1 \== Plc2, NewLevel is Level + 10],
+      [],
+      0,
       [isIn(Char, Plc1), tiredLevel(Char, Level)],
       [isIn(Char, Plc2), tiredLevel(Char, NewLevel)]
     ),
