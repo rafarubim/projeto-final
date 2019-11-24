@@ -178,11 +178,9 @@
 % -------------------- End of external and meta predicate interfaces
 
 :- use_module(set).
-:- use_module(getRuntimeClauses).
 :- use_module(assertRuntimeClauses).
 
-:- module_transparent([beginDomainDefinition/1]).
-:- module_transparent([beginProblemDefinition/1]).
+:- module_transparent([beginDomainDefinition/1, beginProblemDefinition/1]).
 
 :- meta_predicate planAStar(+,+,+,2,-,-,-).
 
