@@ -235,7 +235,7 @@ deleteDomain(Namespace) :-
 % This calls "beginAssertRuntimeTerms" with all type/2 definition with a type functor, for
 % these type functors' clauses.
 beginProblemDefinition(Namespace) :-
-  findall(TypeFunctor/1, planning:type(Namespace, TypeFunctor), TypePredicates),
+  findall(TypeFunctor/1, (planning:type(Namespace, TypeFunctor), (dynamic TypeFunctor/1)), TypePredicates),
   beginAssertRuntimeTerms(planning, TypePredicates, Namespace).
 
 % endProblemDefinition(++Namespace:atom) is nondet
@@ -257,7 +257,7 @@ endProblemDefinition(Namespace) :-
 deleteProblem(Namespace) :-
   findall(_, deleteOneTypeFunctor(Namespace), _).
 
-% plan(++Namespace:atom, ++Facts:list, ++Goals:list, ?Plan:list, ?FinalFacts:list) is nondet
+% plan(++Namespace:atom, ++Facts:list, +Goals:list, ?Plan:list, ?FinalFacts:list) is nondet
 %
 % @arg Namespace This could be any atom. The Namespace used here should match the
 %                one used in "endDomainDefinition" and "endProblemDefinition".
@@ -273,7 +273,7 @@ plan(Namespace, Facts, Goals, Plan, FinalFacts) :-
   planWithForbiddenStates(Namespace, Facts, Goals, Plan, [Facts], FinalFacts).
 
 
-% planAStar(++Namespace:atom, ++Facts:list, ++Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
+% planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
 % 
 % @arg Namespace This could be any atom. The Namespace used here should match the one used in "endDomainDefinition" and "endProblemDefinition".
 %
@@ -321,11 +321,12 @@ negation(X, \+ X).
 isNegation(X) :-
   negation(_, X).
 
-% emptyIntersection(++SetA, ++SetB) is semidet
+% emptyIntersection(+SetA, ++SetB) is semidet
 %
-% True if the intersection of SetA/SetB is empty
+% True if the intersection of SetA/SetB is empty. If any element in SetA can
+% be instanced to one in SetB, then it is not empty.
 emptyIntersection(SetA, SetB) :-
-  setDiff(SetA, SetB, SetA).
+  \+ hasIntersection(SetA, SetB).
 
 % satisfiedPrologGoalsList(:GoalsList:list) is nondet
 %
@@ -390,7 +391,7 @@ allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
   executePrologEffects(PrologEffects),
   updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts).
 
-% satisfiedPlannerGoals(++Facts:list, ++Goals:list) is semidet
+% satisfiedPlannerGoals(++Facts:list, +Goals:list) is semidet
 %
 %   True if planner Goals are satisfied by the Facts. Goals like "not(x)" or "\+ x" are satisfied if the fact
 % doesn't exist in Facts.
@@ -399,7 +400,7 @@ satisfiedPlannerGoals(Facts, Goals) :-
   subsetOf(InclusionGoals, Facts),
   emptyIntersection(AbsenceGoals, Facts).
 
-% planWithForbiddenStates(++Namespace:atom, ++Facts:list, ++Goals:list, ?Plan:list, ++ForbiddenStates:list,
+% planWithForbiddenStates(++Namespace:atom, ++Facts:list, +Goals:list, ?Plan:list, ++ForbiddenStates:list,
 %                                 ?FinalFacts:list) is nondet
 %
 % @arg Namespace This could be any atom. The Namespace used here should match the
@@ -421,7 +422,7 @@ planWithForbiddenStates(Namespace, Facts, Goals, [FirstAction|RestOfPlan], Forbi
   not(setIsOneOf(NewFacts, ForbiddenStates)),
   planWithForbiddenStates(Namespace, NewFacts, Goals, RestOfPlan, [NewFacts|ForbiddenStates], FinalFacts).
 
-% planAStar_(++Namespace:atom, ++Heap:heap, ++Goals:list, :Heuristic:atom, ++ForbiddenStates:list, -Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
+% planAStar_(++Namespace:atom, ++Heap:heap, +Goals:list, :Heuristic:atom, ++ForbiddenStates:list, -Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
 % 
 % @arg Namespace This could be any atom. The Namespace used here should match the one used in "endDomainDefinition" and "endProblemDefinition".
 %

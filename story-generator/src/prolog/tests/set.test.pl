@@ -18,18 +18,18 @@ test(isSet) :- isSet([]).
 test(isSet) :- isSet([a, b, c]).
 test(isSet, [fail]) :- isSet([a, b, a]).
 
-%! elementOf(++Element:any, ++Set:list) is nondet
+% elementOf(++Element:any, ++Set:list) is nondet
 test(elementOf, [nondet]) :- elementOf(b, [a, b, c]).
 test(elementOf, [fail]) :- elementOf(b, []).
 test(elementOf, [fail]) :- elementOf(d, [a, b, c]).
-%! elementOf( +Element:any, ++Set:list) is nondet
+% elementOf( +Element:any, ++Set:list) is nondet
 test(elementOf, [all(X=[a,b,c])]) :- elementOf(f(X), [f(a), f(b), f(c)]).
 test(elementOf, [fail]) :- elementOf(f(_), []).
-%! elementOf( ?Element:any, ++Set:list) is nondet
+% elementOf( ?Element:any, ++Set:list) is nondet
 test(elementOf, [all(X = [a,b,c])]) :- elementOf(X, [a, b, c]).
 test(elementOf, [fail]) :- elementOf(_, []).
 
-%! setDiff(++setA:list, ++setB:list, -Diff:list) is multi
+% setDiff(++setA:list, ++setB:list, -Diff:list) is multi
 test(setDiff, [all(X = [[]])]) :- setDiff([], [], X).
 test(setDiff, [all(X = [[a,b,c]])]) :- setDiff([a, b, c], [], X).
 test(setDiff, [all(X = [[b,c]])]) :- setDiff([a, b, c], [a], X).
@@ -37,7 +37,7 @@ test(setDiff, [all(X = [[a,c]])]) :- setDiff([a, b, c], [b], X).
 test(setDiff, [all(X = [[b]])]) :- setDiff([a, b, c], [a, c], X).
 test(setDiff, [all(X = [[]])]) :- setDiff([a, b, c], [a, b, c], X).
 
-%! setUnion(++setA:list, ++setB:list, -Union:list) is det
+% setUnion(++setA:list, ++setB:list, -Union:list) is det
 test(setUnion, [all(X = [[]])]) :- setUnion([], [], X).
 test(setUnion, [all(X = [[c,b,a]])]) :- setUnion([a, b, c], [], X).
 test(setUnion, [all(X = [[a,b,c]])]) :- setUnion([], [a, b, c], X).
@@ -57,7 +57,7 @@ test(subsetOf, [nondet]) :- subsetOf([c, a], [a, b, c]).
 test(subsetOf, [nondet]) :- subsetOf([b], [a, b, c]).
 test(subsetOf, [fail]) :- subsetOf([a, d], [a, b, c]).
 test(subsetOf, [fail]) :- subsetOf([d, a], [a, b, c]).
-%! subsetOf( +Subset:list, ++Set:list) is nondet
+% subsetOf( +Subset:list, ++Set:list) is nondet
 test(subsetOf, [fail]) :- subsetOf([_], []).
 test(subsetOf, [fail]) :- subsetOf([a|_], []).
 test(subsetOf, [all(X=[[],[b]])]) :- subsetOf([a|X], [a, b]).
@@ -86,7 +86,7 @@ test(equivalentTo, [nondet]) :- equivalentTo([a, b, c], [a, b, c]).
 test(equivalentTo, [nondet]) :- equivalentTo([a, b, c], [a, c, b]).
 test(equivalentTo, [nondet]) :- equivalentTo([a, b, c], [b, c, a]).
 test(equivalentTo, [nondet]) :- equivalentTo([a, b, c], [b, c, a]).
-%! equivalentTo( +SetA:list, ++SetB:list) is nondet
+% equivalentTo( +SetA:list, ++SetB:list) is nondet
 test(equivalentTo, [fail]) :- equivalentTo([_], []).
 test(equivalentTo, [all(X=[a])]) :- equivalentTo([X], [a]).
 test(equivalentTo, [all(X=[b])]) :- equivalentTo([a, X, c], [a, b, c]).
@@ -94,12 +94,12 @@ test(equivalentTo, [fail]) :- equivalentTo([a, _, d], [a, b, c]).
 test(equivalentTo, [all([X,Y]=[[a,b],[b,a]])]) :- equivalentTo([X, Y, c], [a, c, b]).
 test(equivalentTo, [all(X=[[a,c],[c,a]])]) :- equivalentTo([b|X], [a, b, c]).
 test(equivalentTo, [fail]) :- equivalentTo([d|_], [a, b, c]).
-%! equivalentTo( ?SetA:list, ++SetB:list) is nondet
+% equivalentTo( ?SetA:list, ++SetB:list) is nondet
 test(equivalentTo, [all(X=[[]])]) :- equivalentTo(X, []).
 test(equivalentTo, [all(X=[[a]])]) :- equivalentTo(X, [a]).
 test(equivalentTo, [all(X=[[a,b],[b,a]])]) :- equivalentTo(X, [a, b]).
 
-%! setIsOneOf(++Set:list, ++SetList:list) is nondet
+% setIsOneOf(++Set:list, ++SetList:list) is nondet
 test(setIsOneOf, [fail]) :- setIsOneOf([], []).
 test(setIsOneOf, [nondet]) :- setIsOneOf([], [[]]).
 test(setIsOneOf, [nondet]) :- setIsOneOf([b,a], [[a,b]]).
@@ -107,7 +107,7 @@ test(setIsOneOf, [fail]) :- setIsOneOf([], [[a,b], [c,d], ['e',f]]).
 test(setIsOneOf, [nondet]) :- setIsOneOf([], [[a,b], [], ['e',f]]).
 test(setIsOneOf, [nondet]) :- setIsOneOf([d,c], [[a,b], [c,d], ['e',f]]).
 test(setIsOneOf, [fail]) :- setIsOneOf([d,c], [[a,b], [c], ['e',f]]).
-%! setIsOneOf( +Set:list, ++SetList:list) is nondet
+% setIsOneOf( +Set:list, ++SetList:list) is nondet
 test(setIsOneOf, [fail]) :- setIsOneOf([_], []).
 test(setIsOneOf, [fail]) :- setIsOneOf([_], [[]]).
 test(setIsOneOf, [fail]) :- setIsOneOf([_], [[a,b], [c,d], ['e',f]]).
@@ -116,10 +116,24 @@ test(setIsOneOf, [all(X=[c])]) :- setIsOneOf([X], [[a,b], [c], ['e',f]]).
 test(setIsOneOf, [all(X=[b])]) :- setIsOneOf([X,a], [[a,b]]).
 test(setIsOneOf, [all(X=[d])]) :- setIsOneOf([X,c], [[a,b], [c,d], ['e',f]]).
 test(setIsOneOf, [all([X,Y]=[[a,b],[b,a],[c,d],[d,c]])]) :- setIsOneOf([X, Y], [[a,b], [c,d]]).
-%! setIsOneOf( ?Set:list, ++SetList:list) is nondet
+% setIsOneOf( ?Set:list, ++SetList:list) is nondet
 test(setIsOneOf, [fail]) :- setIsOneOf(_, []).
 test(setIsOneOf, [all(X=[[]])]) :- setIsOneOf(X, [[]]).
 test(setIsOneOf, [all(X=[[a,b],[b,a]])]) :- setIsOneOf(X, [[a,b]]).
 test(setIsOneOf, [all(X=[[a,b],[b,a],[c,d],[d,c]])]) :- setIsOneOf(X, [[a,b], [c,d]]).
+
+% hasIntersection(++SetA:list, ++SetB:list) is semidet
+test(hasIntersection, [fail]) :- hasIntersection([], []).
+test(hasIntersection, [fail]) :- hasIntersection([a, b], []).
+test(hasIntersection, [fail]) :- hasIntersection([], [a, b]).
+test(hasIntersection, [fail]) :- hasIntersection([a, b], [c, d]).
+test(hasIntersection) :- hasIntersection([a, b], [b, c]).
+test(hasIntersection) :- hasIntersection([a, b], [c, b]).
+% hasIntersection(+SetA:list, ++SetB:list) is semidet
+test(hasIntersection, [fail]) :- hasIntersection([_], []).
+test(hasIntersection, [fail]) :- hasIntersection([a, _], []).
+test(hasIntersection, [true(X=a)]) :- hasIntersection([X], [a, b]).
+test(hasIntersection, [true(X=b)]) :- hasIntersection([a, X], [b, c]).
+test(hasIntersection) :- hasIntersection([a, _], [a, b]).
 
 :- end_tests(set).

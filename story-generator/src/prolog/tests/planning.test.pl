@@ -30,6 +30,16 @@ test(endDomainDefinition) :-
     [onLocation(P, L1)], 
     [onLocation(P, L2)]
   )),
+  assert(actionSpec(
+    playOcarina(P),
+    [person(P)],
+    [],
+    [onLocation(P, hyrule)],
+    [],
+    [],
+    [wantsToPlayOcarina(P)], 
+    [happy(P)]
+  )),
   % Test
   endDomainDefinition(locationsDomain),
   % Teardown
@@ -42,6 +52,7 @@ test(beginProblemDefinition) :-
 test(endProblemDefinition) :-
   % Setup
   assert(person(jorge)),
+  assert(person(klebson)),
   assert(location(hogwarts)),
   assert(location(araluen)),
   assert(location(hyrule)),
@@ -103,6 +114,105 @@ test(planAStar, [
     Plan,
     PlanCost,
     FinalState
+  ),
+  % Teardown
+  retractall(heuristic(_, _)).
+
+test(plan, [
+      all(
+        [
+          Plan,
+          FinalState,
+          HappyPerson
+        ]=[
+          [
+            [move(jorge,hogwarts,araluen), move(jorge,araluen,hyrule), playOcarina(jorge)],
+            [onLocation(jorge, hyrule), happy(jorge)],
+            jorge
+          ],
+          [
+            [move(jorge,hogwarts,hyrule), playOcarina(jorge)],
+            [onLocation(jorge, hyrule), happy(jorge)],
+            jorge
+          ]
+        ]
+      )
+    ]) :-
+  plan(
+    locationsDomain,
+    [onLocation(jorge, hogwarts)],
+    [happy(HappyPerson)],
+    Plan,
+    FinalState
+  ).
+
+test(planAStar, [
+      true(
+        [
+          Plan,
+          PlanCost,
+          FinalState,
+          HappyPerson
+        ]=[
+          [move(jorge,hogwarts,araluen),move(jorge,araluen,hyrule), playOcarina(jorge)],
+          15,
+          [onLocation(jorge,hyrule), onLocation(klebson, hogwarts), happy(jorge)],
+          jorge
+        ]
+      )
+    ]) :-
+  % Setup
+  assert(heuristic(actionExecution(move(_,hogwarts, hyrule),_), 50) :- !),
+  assert(heuristic(_, 5)),
+  % Test
+  once(
+    planAStar(
+      locationsDomain,
+      [onLocation(jorge, hogwarts), onLocation(klebson, hogwarts)],
+      [happy(HappyPerson)],
+      heuristic,
+      Plan,
+      PlanCost,
+      FinalState
+    )
+  ),
+  % Teardown
+  retractall(heuristic(_, _)).
+
+test(planAStar, [
+      true(
+        [
+          Plan,
+          PlanCost,
+          FinalState
+        ]=[
+          [
+            move(klebson,hogwarts,araluen),
+            move(jorge,hogwarts,araluen),
+            move(klebson,araluen,hyrule),
+            move(jorge,araluen,hyrule),
+            playOcarina(klebson),
+            playOcarina(jorge)
+          ],
+          30,
+          [happy(klebson), onLocation(klebson,hyrule), onLocation(jorge,hyrule), happy(jorge)]
+        ]
+      )
+    ]) :-
+  % Setup
+  assert(heuristic(actionExecution(move(_,hogwarts, hyrule),_), 50) :- !),
+  assert(heuristic(_, 5)),
+  % Test
+  once(
+    planAStar(
+      locationsDomain,
+      [onLocation(jorge, hogwarts), onLocation(klebson, hogwarts), wantsToPlayOcarina(jorge), wantsToPlayOcarina(klebson)],
+      [\+ wantsToPlayOcarina(_)],
+      heuristic,
+      Plan,
+      PlanCost,
+      FinalState
+    )
   ),
   % Teardown
   retractall(heuristic(_, _)).

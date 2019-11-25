@@ -1,4 +1,4 @@
-:-  module(set, [isSet/1, elementOf/2, subsetOf/2, equivalentTo/2, setIsOneOf/2, setDiff/3, setUnion/3]).
+:-  module(set, [isSet/1, elementOf/2, subsetOf/2, equivalentTo/2, setIsOneOf/2, setDiff/3, setUnion/3, hasIntersection/2]).
 
 /**
  * <module> Set
@@ -78,6 +78,14 @@ setIsOneOf(S, [H|_]) :-
 setIsOneOf(S, [H|T]) :-
   setIsOneOf(S, T),
   H \= S.
+
+%! hasIntersection(+SetA:list, ++SetB:list) is semidet
+%
+% True if SetA has a non-empty intersection with SetB.
+hasIntersection([H|_], S) :-
+  elementOf(H, S), !. % green cut
+hasIntersection([_|T], S) :-
+  hasIntersection(T, S).
 
 % -------------------- Private predicates
 
