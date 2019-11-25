@@ -512,7 +512,6 @@ addPlanExecutionsToHeap([actionExecution(Action, ObtainedFacts)|RestOfActionExec
 % HalfPlanExecution is simply added and nothing is replaced or removed. The new heap is returned in NewHeap.
 addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, HalfPlanExecution, NewHeap) :-
   empty_heap(Heap), !, % red cut
-  %write("Adding new: "), write(HalfPlanExecution), nl,
   add_to_heap(Heap, HalfPlanCost, HalfPlanExecution, NewHeap).
 addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap) :-
   get_from_heap(Heap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), PopedHeap),
@@ -522,16 +521,12 @@ addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, halfPlanExecution(HalfPlan,
       HalfPlanCost =:= PopedCost, !, % green cut
       add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), MiddleHeap),
       add_to_heap(MiddleHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
-      %write("Adding1: "), write(HalfPlan), nl,
-      %write("Returning: "), write(PopedHalfPlan), nl
     ;
       HalfPlanCost < PopedCost, !, % green cut
       add_to_heap(PopedHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
-      %write("Replacing: "), write(HalfPlan), nl
     ;
       HalfPlanCost > PopedCost,
       add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), NewHeap)
-      %write("No additon of: "), write(HalfPlan), nl
     )
   ;
     % \+ equivalentTo(PopedFacts, Facts)

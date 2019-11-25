@@ -1,4 +1,4 @@
-:- module(entity, [type/1, category/1, entity/1, entityClassification/2]).
+:- module(entity, [beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, type/1, category/1, entity/1, entityClassification/2]).
 
 % typeSpec(?Type:atom) is nondet
 
@@ -6,24 +6,31 @@
 
 % entitySpec(?Entity:atom, -Superclassification:atom) is nondet
 
+:- use_module('utils/assertRuntimeTerms').
+
+:- module_transparent([beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0]).
+
+:- dynamic typeSpec/1.
+:- dynamic categorySpec/1.
+:- dynamic entitySpec/2.
+
+beginEntityTypesDefinition :-
+  beginAssertRuntimeTerms(entity, [typeSpec/1, categorySpec/2]).
+
+endEntityTypesDefinition :-
+  endAssertRuntimeTerms.
+
+beginEntitiesDefinition :-
+  beginAssertRuntimeTerms(entity, [entitySpec/2]).
+
+endEntitiesDefinition :-
+  endAssertRuntimeTerms.
+
 typeSpec(thing).
 typeSpec(character).
 typeSpec(place).
 typeSpec(relationship).
 typeSpec(animal).
-
-categorySpec(man, character).
-categorySpec(woman, character).
-categorySpec(prince, man).
-categorySpec(owl, animal).
-categorySpec(building, place).
-
-entitySpec(merlin, man).
-entitySpec(arthur, prince).
-entitySpec(hedwig, owl).
-entitySpec(fields, place).
-entitySpec(city, place).
-entitySpec(palace, building).
 
 % type(?Type:atom) is nondet
 type(X) :-

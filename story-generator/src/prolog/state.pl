@@ -1,4 +1,4 @@
-:- module(state, [respectsSignature/2]).
+:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1]).
 
 :- use_module(entity).
 :- use_module(enumeration).
@@ -10,48 +10,47 @@
 % stateArg(stateType)
 % eventArg(eventType)
 
+% 'stateFunctor'(...).
+
+:- use_module('utils/assertRuntimeTerms').
+
+:- module_transparent([beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0]).
+
+:- dynamic signatureSpec/2.
+
+beginStateTypesDefinition :-
+  beginAssertRuntimeTerms(state, [signatureSpec/2]).
+
+endStateTypesDefinition :-
+  endAssertRuntimeTerms.
+
+beginStatesDefinition :-
+  findall(StateTypeName/ArgsAmt, (state:signatureSpec(StateTypeName, ArgsSpec), length(ArgsSpec, ArgsAmt)), StatePredicates),
+  beginAssertRuntimeTerms(state, StatePredicates).
+
+endStatesDefinition :-
+  endAssertRuntimeTerms.
+
+respectsSignature(State) :-
+  respectsSignature(State, _).
+
 signatureSpec(knows, [
   entityArg(character),
   entityArg(character)
+]).
+signatureSpec(standsIn, [
+  entityArg(character),
+  entityArg(place)
 ]).
 signatureSpec(distanceInKilometers, [
   entityArg(place),
   entityArg(place),
   scalarArg(number)
 ]).
-signatureSpec(standsIn, [
-  entityArg(building),
-  entityArg(place)
-]).
-signatureSpec(isIn, [
-    entityArg(character),
-    entityArg(place)
-  ]).
-signatureSpec(tiredLevel, [
-    entityArg(character),
-    scalarArg(number)
-  ]).
-signatureSpec(hasColor, [
-  entityArg(owl),
-  scalarArg(color)
-]).
 signatureSpec(knowsThat, [
-    entityArg(character),
-    stateArg
-  ]).
-
-containsMetaArg(ArgsSpec) :-
-  contains_term(stateArg, ArgsSpec).
-containsMetaArg(ArgsSpec) :-
-  contains_term(stateArg(_), ArgsSpec).
-
-isMetastate(StateTypeName) :-
-  signatureSpec(StateTypeName, ArgsSpec),
-  containsMetaArg(ArgsSpec).
-
-isNotMetastate(StateTypeName) :-
-  signatureSpec(StateTypeName, ArgsSpec),
-  \+ containsMetaArg(ArgsSpec).
+  entityArg(character),
+  stateArg
+]).
 
 % respectsSignature(?State:term, -StateTypeName:atom) is nondet
 respectsSignature(State, StateTypeName) :-
@@ -82,3 +81,16 @@ argFromType(Arg, stateArg) :-
 argFromType(Arg, stateArg(StateTypeName)) :-
   isNotMetastate(StateTypeName),
   respectsSignature(Arg, StateTypeName).
+
+isMetastate(StateTypeName) :-
+  signatureSpec(StateTypeName, ArgsSpec),
+  containsMetaArg(ArgsSpec).
+
+isNotMetastate(StateTypeName) :-
+  signatureSpec(StateTypeName, ArgsSpec),
+  \+ containsMetaArg(ArgsSpec).
+
+containsMetaArg(ArgsSpec) :-
+  contains_term(stateArg, ArgsSpec).
+containsMetaArg(ArgsSpec) :-
+  contains_term(stateArg(_), ArgsSpec).

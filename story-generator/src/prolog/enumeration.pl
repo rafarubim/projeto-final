@@ -1,8 +1,21 @@
-:- module(enumeration, [enumValue/3]).
+:- module(enumeration, [beginEnumsDefinition/0, endEnumsDefinition/0, enumValue/3]).
 
 % enumSpec(?EnumName:atom, -EnumValues:list) is nondet
 %
 % True if . Value and complement can't be variables.
+
+:- use_module('utils/assertRuntimeTerms').
+
+:- module_transparent([beginEnumsDefinition/0, endEnumsDefinition/0]).
+
+:- dynamic enumSpec/2.
+
+beginEnumsDefinition :-
+  beginAssertRuntimeTerms(enumeration, [enumSpec/2]).
+
+endEnumsDefinition :-
+  endAssertRuntimeTerms.
+
 enumSpec(color, [black, red, blue, yellow, green, white, grey, pink, orange, purple]).
 enumSpec(cardSuit, [
   value(clubs, black),

@@ -7,7 +7,9 @@
  * It declares two predicates. The "beginAssertRuntimeTerms" predicate receives a list of name/arity
  * predicate descriptions (e.g. [length/2]). It will start capturing all terms associated to these predicates
  * which are defined in the runtime. It also receives an AssertionModule. After endAssertRuntimeTerms is called,
- * all terms captured will be asserted again in the module "AssertionModule". An example follows below:
+ * all terms captured will be asserted again in the module "AssertionModule".
+ *   Note: be sure to declare the predicates as "dynamic" in the AssertionModule.
+ *   An example follows below:
  * 
  * ---------- yourModule.pl ----------
  * 
@@ -125,24 +127,31 @@ endAssertRuntimeTerms(Namespace, AssertWithNamespace) :-
 endAssertAllPredicateTerms(DefiningModule, AssertingModule, Namespace, AssertWithNamespace, PredicateName/Arity) :-
   predicateNamespace(DefiningModule:PredicateName/Arity, AssertingModule, Namespace, PredicateNamespace),
   endGetRuntimeClauses(PredicateNamespace, Clauses),
-  maplist(assertRuntimeTerms:reassertClauseInModule(AssertingModule, Namespace, AssertWithNamespace), Clauses).
+  maplist(assertRuntimeTerms:clauseHead, Clauses, Terms),
+  maplist(assertRuntimeTerms:reassertTermInModule(AssertingModule, Namespace, AssertWithNamespace), Terms).
 
-% reassertClauseInModule(++AssertingModule:atom, ++Namespace:atom, ++AssertWithNamespace:atom, +Clause:clause) is det
+
+% clauseHead(+Clause:clause, -Head:term) is det
+%
+% True if Head is the Head of the clause.
+clauseHead(Head:-_, Head).
+
+% reassertTermInModule(++AssertingModule:atom, ++Namespace:atom, ++AssertWithNamespace:atom, +Term:term) is det
 %
 % @arg AssertWithNamespace This should be the atom "yes" or "no".
 %
-% Asserts Clause in AssertingModule. If AssertWithNamespace is "yes", then Namespace is asserted a Clause's head
-% extra argument.
-reassertClauseInModule(AssertingModule, Namespace, yes, Head:-Body) :-
+% Asserts Term in AssertingModule, retracting it if it already existed. If AssertWithNamespace is "yes", then
+% Namespace is asserted a Clause's head extra argument.
+reassertTermInModule(AssertingModule, Namespace, yes, Term) :-
   !, % green cut
-  Head =.. [Functor|Args],
-  NewHead =.. [Functor, Namespace|Args],
-  AssertingModule:retractall(NewHead:-Body),
-  AssertingModule:assert(NewHead:-Body).
-reassertClauseInModule(AssertingModule, _, no, Clause) :-
+  Term =.. [Functor|Args],
+  NewTerm =.. [Functor, Namespace|Args],
+  AssertingModule:retractall(NewTerm),
+  AssertingModule:assert(NewTerm).
+reassertTermInModule(AssertingModule, _, no, Term) :-
   !, % green cut
-  AssertingModule:retractall(Clause),
-  AssertingModule:assert(Clause).
+  AssertingModule:retractall(Term),
+  AssertingModule:assert(Term).
 
 % predicateNamespace(++Predicate:predicate_description, ++AssertingModule:atom, ++Namespace:atom, -PredicateNamespace:atom) is det
 %
