@@ -68,6 +68,13 @@
 
 :- module_transparent([beginAssertRuntimeTerms/2, beginAssertRuntimeTerms/3]).
 
+% -------------------- Public predicates
+
+%! beginAssertRuntimeTerms(++AssertingModule:atom, ++Predicates:list) is det
+%! beginAssertRuntimeTerms(++AssertingModule:atom, ++Predicates:list, ++Namespace:atom) is det
+%
+% Begins the runtime assertion of all terms which are in Predicates list. They are asserted in the AssertingModule module.
+% If the Namespace arg is present, the terms are asserted with it as an extra first argument.
 beginAssertRuntimeTerms(AssertingModule, Predicates) :-
   context_module(DefiningModule),
   beginAssertRuntimeTerms(DefiningModule, AssertingModule, Predicates, default).
@@ -75,32 +82,57 @@ beginAssertRuntimeTerms(AssertingModule, Predicates, Namespace) :-
   context_module(DefiningModule),
   beginAssertRuntimeTerms(DefiningModule, AssertingModule, Predicates, Namespace).
 
+%! endAssertRuntimeTerms is det
+%! endAssertRuntimeTerms(++Namespace:atom) is det
+%
+% Ends the runtime assertion of all terms defined by the corresponding call to "beginAssertRuntimeTerms". The Namespace arg should
+% should the present if it is in the corresponding call.
 endAssertRuntimeTerms :-
   endAssertRuntimeTerms(default, no).
 endAssertRuntimeTerms(Namespace) :-
   endAssertRuntimeTerms(Namespace, yes).
 
-% Private
+% -------------------- Private predicates
 
+% beginAssertRuntimeTerms(++DefiningModule:atom, ++AssertingModule:atom, ++Predicates:list, ++Namespace:atom) is det
+%
+% Begins the runtime assertion of all terms which are in Predicates list.
 beginAssertRuntimeTerms(DefiningModule, AssertingModule, Predicates, Namespace) :-
   maplist(beginAssertAllPredicateTerms(DefiningModule, AssertingModule, Namespace), Predicates),
   assert(assertRuntimeTerms:predicatesDef(DefiningModule, AssertingModule, Predicates, Namespace)).
 
+% beginAssertAllPredicateTerms(++DefiningModule:atom, ++AssertingModule:atom, ++Namespace:atom, ++PredicateDesc:predicate_description) is det
+%
+% Calls "beginGetRuntimeClauses" for the clauses associated to PredicateDesc.
 beginAssertAllPredicateTerms(DefiningModule, AssertingModule, Namespace, PredicateName/Arity) :-
   length(VarArgsLst, Arity),
   PredicateGenericTerm =.. [PredicateName|VarArgsLst],
   predicateNamespace(DefiningModule:PredicateName/Arity, AssertingModule, Namespace, PredicateNamespace),
   beginGetRuntimeClauses(PredicateNamespace, DefiningModule:PredicateGenericTerm, true).
 
+% endAssertRuntimeTerms(++Namespace:atom, ++AssertWithNamespace) is det
+%
+% Ends the runtime assertion of all terms which were in the predicate list of "beginAssertRuntimeTerms". It passes Namespace as an extra first argument of these
+% terms if AssertWithNamespace is "yes".
 endAssertRuntimeTerms(Namespace, AssertWithNamespace) :-
   retract(assertRuntimeTerms:predicatesDef(DefiningModule, AssertingModule, Predicates, Namespace)),
   maplist(assertRuntimeTerms:endAssertAllPredicateTerms(DefiningModule, AssertingModule, Namespace, AssertWithNamespace), Predicates).
 
+% endAssertAllPredicateTerms(++DefiningModule:atom, ++AssertingModule:atom, ++Namespace:atom, ++AssertWithNamespace:atom, ++PredicateDesc:predicate_description) is det
+%
+% Calls "endGetRuntimeClauses" for the clauses associated to PredicateDesc, then asserts them in AssertingModule (with Namespace as an extra first argument if
+% AssertWithNamespace is "yes").
 endAssertAllPredicateTerms(DefiningModule, AssertingModule, Namespace, AssertWithNamespace, PredicateName/Arity) :-
   predicateNamespace(DefiningModule:PredicateName/Arity, AssertingModule, Namespace, PredicateNamespace),
   endGetRuntimeClauses(PredicateNamespace, Clauses),
   maplist(assertRuntimeTerms:reassertClauseInModule(AssertingModule, Namespace, AssertWithNamespace), Clauses).
 
+% reassertClauseInModule(++AssertingModule:atom, ++Namespace:atom, ++AssertWithNamespace:atom, +Clause:clause) is det
+%
+% @arg AssertWithNamespace This should be the atom "yes" or "no".
+%
+% Asserts Clause in AssertingModule. If AssertWithNamespace is "yes", then Namespace is asserted a Clause's head
+% extra argument.
 reassertClauseInModule(AssertingModule, Namespace, yes, Head:-Body) :-
   !, % green cut
   Head =.. [Functor|Args],
@@ -112,5 +144,9 @@ reassertClauseInModule(AssertingModule, _, no, Clause) :-
   AssertingModule:retractall(Clause),
   AssertingModule:assert(Clause).
 
+% predicateNamespace(++Predicate:predicate_description, ++AssertingModule:atom, ++Namespace:atom, -PredicateNamespace:atom) is det
+%
+% True if PredicateNamespace is the namespace associated to the predicate (used in beginGetRuntimeClauses/
+% endGetRuntimeClauses).
 predicateNamespace(DefiningModule:PredicateName/Arity, AssertingModule, Namespace, PredicateNamespace) :-
   atomic_list_concat([DefiningModule, ':', PredicateName, '/', Arity, '--', AssertingModule, '--', Namespace], PredicateNamespace).
