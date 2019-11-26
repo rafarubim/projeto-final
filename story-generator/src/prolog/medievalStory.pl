@@ -1,10 +1,18 @@
 :- use_module(entity).
+:- use_module(enumeration).
 :- use_module(state).
 :- use_module(event).
 :- use_module(trigger).
 :- use_module(eventProcesser).
 
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Genre Definition
+
+% --------------------------------- Enum types
+:- beginEnumsDefinition.
+
+enumSpec(speed, [slow, medium, fast]).
+
+:- endEnumsDefinition.
 
 % --------------------------------- Entity types
 :- beginEntityTypesDefinition.

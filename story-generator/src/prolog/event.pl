@@ -5,7 +5,6 @@
 
 :- use_module('utils/set').
 :- use_module(state).
-
 :- use_module('utils/assertRuntimeTerms').
 
 :- module_transparent([beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0]).

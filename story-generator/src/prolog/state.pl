@@ -17,15 +17,21 @@
 :- module_transparent([beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0]).
 
 :- dynamic signatureSpec/2.
+:- dynamic knows/2.
+:- dynamic standsIn/2.
+:- dynamic distanceInKilometers/3.
+:- dynamic knowsThat/2.
+:- dynamic hasColor/2.
 
 beginStateTypesDefinition :-
   beginAssertRuntimeTerms(state, [signatureSpec/2]).
 
 endStateTypesDefinition :-
-  endAssertRuntimeTerms.
+  endAssertRuntimeTerms,
+  findall(_, (state:signatureSpec(StateTypeName, ArgsSpec), length(ArgsSpec, ArgsAmt), (dynamic StateTypeName/ArgsAmt)), _).
 
 beginStatesDefinition :-
-  findall(StateTypeName/ArgsAmt, (state:signatureSpec(StateTypeName, ArgsSpec), length(ArgsSpec, ArgsAmt), (dynamic StateTypeName/ArgsAmt)), StatePredicates),
+  findall(StateTypeName/ArgsAmt, (state:signatureSpec(StateTypeName, ArgsSpec), length(ArgsSpec, ArgsAmt)), StatePredicates),
   beginAssertRuntimeTerms(state, StatePredicates).
 
 endStatesDefinition :-
@@ -69,6 +75,10 @@ signatureSpec(distanceInKilometers, [
 signatureSpec(knowsThat, [
   entityArg(character),
   stateArg
+]).
+signatureSpec(hasColor, [
+  entityArg(character),
+  scalarArg(color)
 ]).
 
 % respectsSignature(?State:term, -StateTypeName:atom) is nondet

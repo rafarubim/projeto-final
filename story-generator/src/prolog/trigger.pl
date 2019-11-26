@@ -10,6 +10,7 @@
 
 :- dynamic triggerTypeSpec/2.
 :- dynamic triggerHeap/1.
+:- dynamic tick/1.
 
 :- empty_heap(Heap), assert(triggerHeap(Heap)).
 
@@ -19,10 +20,11 @@ beginTriggerTypesDefinition :-
   beginAssertRuntimeTerms(trigger, [triggerTypeSpec/2]).
 
 endTriggerTypesDefinition :-
-  endAssertRuntimeTerms.
+  endAssertRuntimeTerms,
+  findall(_,(trigger:triggerTypeSpec(TrgName, _), (dynamic TrgName/1)),_).
 
 beginTriggersDefinition :-
-  findall(TrgName/1,(trigger:triggerTypeSpec(TrgName, _), (dynamic TrgName/1)),TrgPredicateDescs),
+  findall(TrgName/1,trigger:triggerTypeSpec(TrgName, _),TrgPredicateDescs),
   beginAssertRuntimeTerms(trigger, TrgPredicateDescs).
 
 endTriggersDefinition :-

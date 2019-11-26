@@ -17,12 +17,6 @@ endEnumsDefinition :-
   endAssertRuntimeTerms.
 
 enumSpec(color, [black, red, blue, yellow, green, white, grey, pink, orange, purple]).
-enumSpec(cardSuit, [
-  value(clubs, black),
-  value(hearts, red),
-  value(spades, black),
-  value(diamonds, red)
-]).
 
 % enumValue(?Enum:atom, ?Value:atom, -Complement:any) is nondet
 %
