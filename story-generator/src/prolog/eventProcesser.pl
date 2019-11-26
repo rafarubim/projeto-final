@@ -1,4 +1,4 @@
-:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, planToPlot/1, query/2]). 
+:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/2]). 
 
 :- use_module('utils/assertRuntimeTerms').
 :- use_module('utils/planning').
@@ -76,12 +76,6 @@ tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName) :-
     \+ passiveTrigger(TrgName),
     createAndExecuteEvent(Time, FirstAction)
   ).
-
-
-planToPlot(Plan) :-
-  allStates(States),
-  plotSpec([FirstGoal|_]),
-  planAStar(eventProcesser, States, FirstGoal, heuristic, Plan, _, _).
 
 setCurrentPlotPos(Pos) :-
   retractall(currentPlotPos(_)),
