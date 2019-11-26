@@ -5,6 +5,7 @@
 % True if TriggerName is a trigger.
 
 :- use_module('utils/assertRuntimeTerms').
+:- use_module('utils/heaps').
 
 :- module_transparent([beginTriggerTypesDefinition/0, endTriggerTypesDefinition/0, beginTriggersDefinition/0, endTriggersDefinition/0]).
 

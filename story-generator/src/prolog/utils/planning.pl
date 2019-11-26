@@ -179,6 +179,7 @@
 
 :- use_module(set).
 :- use_module(assertRuntimeTerms).
+:- use_module(heaps).
 
 :- module_transparent([beginDomainDefinition/1, beginProblemDefinition/1]).
 
