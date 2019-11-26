@@ -118,6 +118,38 @@ test(planAStar, [
   % Teardown
   retractall(heuristic(_, _)).
 
+test(planAStar, [
+      all(
+        [
+          Plan,
+          PlanCost,
+          FinalState
+        ]=[
+          [
+            [move(jorge,hogwarts,hyrule)],
+            50,
+            [onLocation(jorge,hyrule)]
+          ]
+        ]
+      )
+    ]) :-
+  % Setup
+  assert(heuristic(actionExecution(move(_,hogwarts, hyrule),_), 50) :- !),
+  assert(heuristic(_, 5)),
+  % Test
+  planAStar(
+    locationsDomain,
+    [onLocation(jorge, hogwarts)],
+    [onLocation(jorge, hyrule)],
+    heuristic,
+    Plan,
+    PlanCost,
+    FinalState,
+    [move(_, hogwarts, hyrule)]
+  ),
+  % Teardown
+  retractall(heuristic(_, _)).
+
 test(plan, [
       all(
         [

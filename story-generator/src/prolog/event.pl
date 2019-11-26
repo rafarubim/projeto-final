@@ -1,31 +1,17 @@
-:- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, merlinPlan/3]).
+:- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, eventTypeToActionSpec/2, eventType/7, eventTypesTriggeredBy/2, createAndExecuteEvent/2]).
 
-% eventTypeSpec(EventName:compound_term, Entity)
+% eventTypeSpec(?EventTypeName:compound_term, -StateConditions:list, -PrologConditions:list, -TriggerConditions:list, -EffectTriggers:list, -RmStates:list, -AddedStates:list) is nondet
+% eventTypeSpec(?EventType:compound_term, ?OcurrenceTime:number, -EffectTriggers:list, -RmStates:list, -AddedStates:list) is nondet
+
 :- use_module('utils/set').
-:- use_module('utils/planning').
-:- use_module(entity).
 :- use_module(state).
-
-/*
-:- beginDomainDefinition(events).
-actionSpec(
-  move(Char, Plc1, Plc2, Level, NewLevel),
-  [],
-  [],
-  [isIn(Char, Plc1), tiredLevel(Char, Level)],
-  [event:ignoreNonDet(state:respectsSignature(isIn(Char, Plc2), _)), event:ignoreNonDet(state:respectsSignature(tiredLevel(Char, NewLevel), _)), Plc1 \== Plc2, NewLevel is Level + 10],
-  [],
-  [isIn(Char, Plc1), tiredLevel(Char, Level)],
-  [isIn(Char, Plc2), tiredLevel(Char, NewLevel)]
-).
-:- endDomainDefinition(events).
-*/
 
 :- use_module('utils/assertRuntimeTerms').
 
-:- module_transparent([beginEventTypesDefinition/0, endEventTypesDefinition/0]).
+:- module_transparent([beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0]).
 
 :- dynamic eventTypeSpec/7.
+:- dynamic eventSpec/2.
 
 beginEventTypesDefinition :-
   beginAssertRuntimeTerms(event, [eventTypeSpec/7]).
@@ -33,22 +19,24 @@ beginEventTypesDefinition :-
 endEventTypesDefinition :-
   endAssertRuntimeTerms.
 
+beginEventsDefinition :-
+  beginAssertRuntimeTerms(event, [eventSpec/2]).
+
+endEventsDefinition :-
+  endAssertRuntimeTerms.
+
+eventType(Name, StCond, PlCond, TrgCond, TrgEff, RmSt, AddSt) :-
+  eventTypeSpec(Name, StCond, PlCond, TrgCond, TrgEff, RmSt, AddSt).
+
 eventTypeSpec(
-  move(Char, Plc1, Plc2, Level, NewLevel),  	    % Event name
-  [standsIn(Char, Plc1), tiredLevel(Char, Level)],    % State Conditions
-  [Plc1 \== Plc2, NewLevel is Level + 10],        % Prolog Conditions
-  [],                                             % Trigger Conditions
-  0,                                              % Duration
-  [standsIn(Char, Plc1), tiredLevel(Char, Level)],    % Removed States
-  [standsIn(Char, Plc2), tiredLevel(Char, NewLevel)]  % Added States
+  move(Char, Plc1, Plc2), % Event type name
+  [standsIn(Char, Plc1)], % State Conditions
+  [Plc1 \== Plc2],        % Prolog Conditions
+  [tick],                 % Trigger Conditions
+  [tick(0)],              % Effect Triggers
+  [standsIn(Char, Plc1)], % Removed States
+  [standsIn(Char, Plc2)]  % Added States
 ).
-
-ignoreNonDet(Goal) :-
-  Goal.
-ignoreNonDet(Goal) :-
-  \+ Goal.
-
-instancedState(Assertion, event:ignoreNonDet(respectsSignature(Assertion))).
 
 eventTypeToActionSpec(EventSpecTerm, ActionSpecTerm) :-
   EventSpecTerm =.. [eventTypeSpec, EventName, StateConditions, PrologConditions, _, _, Retractions, Assertions],
@@ -57,32 +45,33 @@ eventTypeToActionSpec(EventSpecTerm, ActionSpecTerm) :-
   append([InstancedRetractions, InstancedAssertions, PrologConditions], MorePrologConditions),
   ActionSpecTerm =.. [actionSpec, EventName, [], [], StateConditions, MorePrologConditions, [], Retractions, Assertions].
 
-createActionSpecs :-
-  beginDomainDefinition(events),
-  eventTypeToActionSpec(
-    eventTypeSpec(
-      move(Char, Plc1, Plc2, Level, NewLevel),
-      [standsIn(Char, Plc1), tiredLevel(Char, Level)],
-      [Plc1 \== Plc2, NewLevel is Level + 10],
-      [],
-      0,
-      [standsIn(Char, Plc1), tiredLevel(Char, Level)],
-      [standsIn(Char, Plc2), tiredLevel(Char, NewLevel)]
+% Events
+eventTypesTriggeredBy(NamesEventTypes, TrgType) :-
+  findall(
+      EventName,
+    (
+      eventTypeSpec(EventName, _, _, TrgConds, _, _, _),
+      elementOf(TrgType, TrgConds)
     ),
-    ActionSpecTerm
-  ),
-  assert(ActionSpecTerm),
-  endDomainDefinition(events).
+    NamesEventTypes
+  ).
 
-facts([
-  standsIn(merlin, fields),
-  tiredLevel(merlin, 0)
-]).
+createAndExecuteEvent(CurrentTime, EventTypeName) :-
+  eventTypeSpec(EventTypeName, _, _, _, EffTrgs, RmStates, AddStates),
+  maplist(deltaToAbsTriggerTime(CurrentTime), EffTrgs, NewTrgs),
+  addTriggers(NewTrgs),
+  removeStates(RmStates),
+  addStates(AddStates),
+  assert(eventSpec(EventTypeName, CurrentTime)).
 
-heuristic(_, 5).
+deltaToAbsTriggerTime(CurrentTime, DeltaTrg, AbsTrg) :-
+  DeltaTrg =.. [Trg, Delta],
+  AbsTime is CurrentTime + Delta,
+  AbsTrg =.. [Trg, AbsTime].
 
-merlinPlan(Plan, PlanCost, FinalState) :- facts(X), planAStar(events, X, [standsIn(merlin, city)], heuristic, Plan, PlanCost, FinalState).
+instancedState(Assertion, event:ignoreNonDet(respectsSignature(Assertion))).
 
-:- createActionSpecs.
-
-% merlinPlan(Plan,Cost,Final).
+ignoreNonDet(Goal) :-
+  Goal.
+ignoreNonDet(Goal) :-
+  \+ Goal.

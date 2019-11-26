@@ -1,4 +1,4 @@
-:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1]).
+:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, removeStates/1, addStates/1]).
 
 :- use_module(entity).
 :- use_module(enumeration).
@@ -25,7 +25,7 @@ endStateTypesDefinition :-
   endAssertRuntimeTerms.
 
 beginStatesDefinition :-
-  findall(StateTypeName/ArgsAmt, (state:signatureSpec(StateTypeName, ArgsSpec), length(ArgsSpec, ArgsAmt)), StatePredicates),
+  findall(StateTypeName/ArgsAmt, (state:signatureSpec(StateTypeName, ArgsSpec), length(ArgsSpec, ArgsAmt), (dynamic StateTypeName/ArgsAmt)), StatePredicates),
   beginAssertRuntimeTerms(state, StatePredicates).
 
 endStatesDefinition :-
@@ -33,6 +33,25 @@ endStatesDefinition :-
 
 respectsSignature(State) :-
   respectsSignature(State, _).
+
+allStates(States) :-
+  findall(
+    StateTerm,
+    (
+      state:signatureSpec(StateTypeName, ArgsSpec),
+      length(ArgsSpec, ArgsAmt),
+      length(VarArgs, ArgsAmt),
+      StateTerm =.. [StateTypeName|VarArgs],
+      StateTerm
+    ),
+    States
+  ).
+
+removeStates(States) :-
+  maplist(retractall, States).
+
+addStates(States) :-
+  maplist(assert, States).
 
 signatureSpec(knows, [
   entityArg(character),

@@ -1,4 +1,4 @@
-:- module(planning, [plan/5, planAStar/7, beginDomainDefinition/1, endDomainDefinition/1, deleteDomain/1, beginProblemDefinition/1, endProblemDefinition/1, deleteProblem/1]).
+:- module(planning, [plan/5, planAStar/7, planAStar/8, beginDomainDefinition/1, endDomainDefinition/1, deleteDomain/1, beginProblemDefinition/1, endProblemDefinition/1, deleteProblem/1]).
 
 /**
  * <module> Planning
@@ -183,6 +183,7 @@
 :- module_transparent([beginDomainDefinition/1, beginProblemDefinition/1]).
 
 :- meta_predicate planAStar(+,+,+,2,-,-,-).
+:- meta_predicate planAStar(+,+,+,2,-,-,-,+).
 
 % actionSpec(++Namespace:atom, -Action:compound_term, -TypeSpecs:list, -PrologConditions:list, -Conditions:list,
 %            -MorePrologConditions:list, -PrologEffects:list, -RemovedFacts:list, -AddedFacts:list) is nondet
@@ -274,6 +275,7 @@ plan(Namespace, Facts, Goals, Plan, FinalFacts) :-
 
 
 % planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
+% planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list, AllowedActionsAsFirst:list) is nondet
 % 
 % @arg Namespace This could be any atom. The Namespace used here should match the one used in "endDomainDefinition" and "endProblemDefinition".
 %
@@ -281,6 +283,7 @@ plan(Namespace, Facts, Goals, Plan, FinalFacts) :-
 % the order in which actions happen to compute the Plan by associating costs to each action. That also determines the total PlanCost, which is
 % returned. Only the best plan is returned, unless that are other equivalent-costed ones. FinalFacts is the set of facts that remain after the
 % plan is executed.
+%   If AllowedActionsAsFirst is passed, the algorithm only considers the actions in this list as the first step of the planning.
 planAStar(_, Facts, Goals, _, [], 0, Facts) :-
   satisfiedPlannerGoals(Facts, Goals), !. % red cut
 planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts) :-
@@ -290,8 +293,69 @@ planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts) :-
   \+ empty_heap(NewHeap),
   planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts], ReversePlan, PlanCost, FinalFacts),
   reverse(ReversePlan, Plan).
+planAStar(_, Facts, Goals, _, [], 0, Facts, _) :-
+  satisfiedPlannerGoals(Facts, Goals), !. % red cut
+planAStar(Namespace, Facts, Goals, Heuristic, Plan, PlanCost, FinalFacts, AllowedActionsAsFirst) :-
+  empty_heap(Heap),
+  add_to_heap(Heap, 0, halfPlanExecution([], Facts), MiddleHeap),
+  setTempActions(Namespace, AllowedActionsAsFirst),
+  openNonForbiddenActionsInHeap(Namespace, [Facts], Heuristic, -1, MiddleHeap, NewHeap, _),
+  revertTempActions(Namespace),
+  \+ empty_heap(NewHeap),
+  planAStar_(Namespace, NewHeap, Goals, Heuristic, [Facts], ReversePlan, PlanCost, FinalFacts),
+  reverse(ReversePlan, Plan).
 
 % -------------------- Private predicates
+
+% setTempActions(++Namespace:atom, +Actions:list) is det
+%
+% This temporarily changes the Namespace of all actions which are not in the Actions list, so they don't work in the planner.
+setTempActions(Namespace, Actions) :-
+  nontempActionNamespace(Namespace, NonTempActionNamespace),
+  changeActionNamespaces(Namespace, NonTempActionNamespace),
+  maplist(setTempAction(Namespace), Actions).
+
+% revertTempActions(++Namespace:atom) is det
+%
+% This reverts what the "setTempActions" predicate do.
+revertTempActions(Namespace) :-
+  deleteTempActions(Namespace),
+  nontempActionNamespace(Namespace, NonTempActionNamespace),
+  changeActionNamespaces(NonTempActionNamespace, Namespace).
+
+% changeActionNamespaces(++Namespace:atom, ++NewNamespace:atom) is det
+%
+% This changes all actionSpecs associated to Namespace to be associated to NewNamespace.
+changeActionNamespaces(Namespace, NewNamespace) :-
+  findall(
+    _,
+    (
+      actionSpec(Namespace, Action, TypeSpecs, PlConds, Conds, MorePlConds, PlEffs, RmFs, AddFs),
+      retract(actionSpec(Namespace, Action, TypeSpecs, PlConds, Conds, MorePlConds, PlEffs, RmFs, AddFs)),
+      assert(actionSpec(NewNamespace, Action, TypeSpecs, PlConds, Conds, MorePlConds, PlEffs, RmFs, AddFs))
+    ),
+    _
+  ).
+
+% setTempAction(++Namespace:atom, +Action:compound_term) is det
+%
+% This creates a copy of the non temp actionSpec associated to Action. It uses Namespace to create this temporary action.
+setTempAction(Namespace, Action) :-
+  nontempActionNamespace(Namespace, NonTempActionNamespace),
+  actionSpec(NonTempActionNamespace, Action, TypeSpecs, PlConds, Conds, MorePlConds, PlEffs, RmFs, AddFs),
+  assert(actionSpec(Namespace, Action, TypeSpecs, PlConds, Conds, MorePlConds, PlEffs, RmFs, AddFs)).
+
+% deleteTempActions(++Namespace:atom) is det
+% 
+% This removes all actionSpecs associated to Namespace (this should be used when they're temporary).
+deleteTempActions(Namespace) :-
+  retractall(actionSpec(Namespace, _, _, _, _, _, _, _, _)).
+
+% nontempActionNamespace(?Namespace:atom, ?NonTempActionNamespace:atom) is semidet
+% 
+% True if NonTempActionNamespace is the Namespace with a temp sufix
+nontempActionNamespace(Namespace, NonTempActionNamespace) :-
+  atomic_concat(Namespace, '--nontemp', NonTempActionNamespace).
 
 % deleteOneTypeFunctor(++Namespace:atom) is nondet
 %
