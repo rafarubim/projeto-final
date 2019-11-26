@@ -178,6 +178,7 @@
 % -------------------- End of external and meta predicate interfaces
 
 :- use_module(apply).
+:- use_module(lists).
 :- use_module(set).
 :- use_module(assertRuntimeTerms).
 :- use_module(heaps).

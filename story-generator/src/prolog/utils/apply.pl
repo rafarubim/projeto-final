@@ -54,7 +54,8 @@
             scanl/7                     % :Pred, +List1, +List2, +List3, +List4,
                                         % ?V0, ?Vs
           ]).
-:- use_module(library(error)).
+
+:- use_module(error).
 
 /** <module> Apply predicates on a list
 

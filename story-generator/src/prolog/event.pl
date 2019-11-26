@@ -4,6 +4,7 @@
 % eventTypeSpec(?EventType:compound_term, ?OcurrenceTime:number, -EffectTriggers:list, -RmStates:list, -AddedStates:list) is nondet
 
 :- use_module('utils/apply').
+:- use_module('utils/lists').
 :- use_module('utils/assertRuntimeTerms').
 :- use_module('utils/set').
 :- use_module(state).

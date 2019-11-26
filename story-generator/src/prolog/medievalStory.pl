@@ -66,6 +66,7 @@ eventTypeSpec(
 :- beginEntitiesDefinition.
 :- beginStatesDefinition.
 :- beginTriggersDefinition.
+:- beginEventsDefinition.
 :- beginPlotDefinition.
 
 % --------------------------------- Entities
@@ -103,6 +104,7 @@ plotSpec([
 :- endEntitiesDefinition.
 :- endStatesDefinition.
 :- endTriggersDefinition.
+:- endEventsDefinition.
 :- endPlotDefinition.
 
 :- beginEventProcesser.
