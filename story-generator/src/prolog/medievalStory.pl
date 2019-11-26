@@ -1,12 +1,12 @@
 :- use_module(index).
 
+% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Genre Definition
+
 :- beginEnumsDefinition.
 :- beginEntityTypesDefinition.
 :- beginStateTypesDefinition.
 :- beginTriggerTypesDefinition.
 :- beginEventTypesDefinition.
-
-% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Genre Definition
 
 % --------------------------------- Enum types
 

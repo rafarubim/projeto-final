@@ -66,6 +66,7 @@
  * @see https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/pldoc.html%27)
  **/
 
+:- use_module(apply).
 :- use_module(getRuntimeClauses).
 
 :- module_transparent([beginAssertRuntimeTerms/2, beginAssertRuntimeTerms/3]).

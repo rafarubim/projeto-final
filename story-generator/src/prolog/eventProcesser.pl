@@ -1,5 +1,6 @@
 :- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/2]). 
 
+:- use_module('utils/apply').
 :- use_module('utils/assertRuntimeTerms').
 :- use_module('utils/planning').
 :- use_module(event).

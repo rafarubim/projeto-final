@@ -54,6 +54,7 @@
  * @see https://www.swi-prolog.org/pldoc/doc_for?object=section(%27packages/pldoc.html%27)
  **/
 
+:- use_module(apply).
 :- use_module(set, [setDiff/3]).
 
 % clauseDef(++Namespace:atom, -Head:any, -Body:any) is nondet

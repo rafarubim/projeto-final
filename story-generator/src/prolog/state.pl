@@ -12,6 +12,7 @@
 
 % 'stateFunctor'(...).
 
+:- use_module('utils/apply').
 :- use_module('utils/assertRuntimeTerms').
 
 :- module_transparent([beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0]).
