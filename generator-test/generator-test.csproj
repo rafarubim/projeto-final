@@ -11,4 +11,19 @@
     <ProjectReference Include="..\story-generator\story-generator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="src\Program.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="src\medievalSpec.pl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="src\storySpec.pl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
