@@ -1,4 +1,4 @@
-:- module(trigger, [beginTriggerTypesDefinition/0, endTriggerTypesDefinition/0, beginTriggersDefinition/0, endTriggersDefinition/0, addTriggers/1, nextTrigger/2, popTrigger/2, triggerTerm/3, passiveTrigger/1]).
+:- module(trigger, [beginTriggerTypesDefinition/0, endTriggerTypesDefinition/0, beginTriggersDefinition/0, endTriggersDefinition/0, addTriggers/1, nextTrigger/2, popTrigger/2, triggerTerm/3, passiveTrigger/1, allTriggerTypes/1]).
 
 % triggerSpec(?TriggerName:atom) is nondet
 %
@@ -57,6 +57,9 @@ popTrigger(TrgName, Time) :-
 
 passiveTrigger(TrgName) :-
   triggerTypeSpec(TrgName, passive).
+
+allTriggerTypes(AllTrgTypes) :-
+  findall(triggerType(TrgName,Passive), triggerTypeSpec(TrgName, Passive), AllTrgTypes). 
 
 triggerTerm(TrgTerm, TrgName, Time) :-
   TrgTerm =.. [TrgName, Time].

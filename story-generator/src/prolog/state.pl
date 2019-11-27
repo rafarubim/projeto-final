@@ -1,4 +1,4 @@
-:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, removeStates/1, addStates/1]).
+:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, allSignatures/1, removeStates/1, addStates/1]).
 
 :- use_module(entity).
 :- use_module(enumeration).
@@ -52,6 +52,15 @@ allStates(States) :-
       StateTerm
     ),
     States
+  ).
+
+allSignatures(Signatures) :-
+  findall(
+    signature(StateTypeName, ArgsSpec),
+    (
+      state:signatureSpec(StateTypeName, ArgsSpec)
+    ),
+    Signatures
   ).
 
 removeStates(States) :-

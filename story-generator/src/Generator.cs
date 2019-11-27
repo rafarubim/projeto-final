@@ -1,7 +1,10 @@
 ﻿using SbsSW.SwiPlCs;
+using StoryGenerator.Utils;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,6 +16,9 @@ namespace StoryGenerator
     private static Generator _instance;
     private const string _EventProcesserLocation = "src/prolog/eventProcesser.pl";
     private const string _IndexLocation = "src/prolog/index.pl";
+
+    private ImmutableDictionary<StateType, ImmutableHashSet<ImmutableList<Type>>> _stateTypeSpecs = null;
+    private ImmutableHashSet<string> _entities = null;
 
     public static string GenreSpecsFileLocation { get; set; }
     public static string StorySpecsFileLocation { get; set; }
@@ -94,36 +100,190 @@ endPlotDefinition.
       _instance = null;
     }
 
-    public void Test()
+    private Type typeByArgName(string argName)
     {
-      PlQuery.PlCall("query(12, [])");
-      var q2 = new PlQuery("call(state:allStates(S))");
-      Console.WriteLine("Res2: " + q2.SolutionVariables.FirstOrDefault()["S"]);
-    }
-
-    public void QueryGenerator(int currentTime, IEnumerable<(String, int)> triggers)
-    {
-
-    }
-
-    public void Print()
-    {
-      // Example
-      PlQuery.PlCall("assert(father(martin, inka))");
-      PlQuery.PlCall("assert(father(uwe, gloria))");
-      PlQuery.PlCall("assert(father(uwe, melanie))");
-      PlQuery.PlCall("assert(father(uwe, ayala))");
-      using (PlQuery q = new PlQuery("father(P, C), atomic_list_concat([P,' is_father_of ',C], L)"))
+      switch (argName)
       {
-        foreach (PlQueryVariables v in q.SolutionVariables)
-          Console.WriteLine(v["L"].ToString());
-
-        Console.WriteLine("all child's from uwe:");
-        q.Variables["P"].Unify("uwe");
-        foreach (PlQueryVariables v in q.SolutionVariables)
-          Console.WriteLine(v["C"].ToString());
+        case "entityArg":
+          return typeof(Entity);
+        case "stateArg":
+          return typeof(State);
+        case "eventArg":
+          return typeof(Event);
+        case "scalarArg":
+          return typeof(Scalar);
+        default:
+          return null;
       }
-      // End Example
+    }
+
+    private ImmutableDictionary<StateType, ImmutableHashSet<ImmutableList<Type>>> _StateTypeSpecs
+    {
+      get
+      {
+        if (_stateTypeSpecs != null)
+        {
+          return _stateTypeSpecs;
+        }
+        var stateTypeSpecColl = PlQuery.PlCallQuery("allSignatures(Signatures)").AsEnumerable();
+        var stateTypeDict = ImmutableDictionary.Create<StateType, ImmutableHashSet<ImmutableList<Type>>>();
+
+        foreach (var stateTypeSpec in stateTypeSpecColl)
+        {
+          var argSpecs = stateTypeSpec[2].ToList();
+          var stateType = new StateType(stateTypeSpec[1].ToString(), argSpecs.Count());
+          var typesLst = ImmutableList.Create<Type>();
+          foreach (var spec in argSpecs)
+          {
+            var type = typeByArgName(spec.Name);
+            typesLst = typesLst.Add(type);
+          }
+          if (stateTypeDict.ContainsKey(stateType))
+          {
+            var specsSet = stateTypeDict[stateType];
+            specsSet = specsSet.Add(typesLst);
+            stateTypeDict = stateTypeDict.SetItem(stateType, specsSet);
+          }
+          else
+          {
+            var specsSet = ImmutableHashSet.Create(typesLst);
+            stateTypeDict = stateTypeDict.Add(stateType, specsSet);
+          }
+        }
+        return _stateTypeSpecs = stateTypeDict;
+      }
+    }
+
+    private ImmutableHashSet<string> _Entities
+    {
+      get
+      {
+        if (_entities != null)
+        {
+          return _entities;
+        }
+        var entities = ImmutableHashSet.Create<string>();
+
+        var entsColl = PlQuery.PlCallQuery("allEntities(Entities)").AsEnumerable();
+        foreach (var ent in entsColl)
+        {
+          entities = entities.Add(ent.ToString());
+        }
+
+        return _entities = entities;
+      }
+    }
+
+    private State CreateStateFromTerm(PlTerm stateTerm)
+    {
+      var argsLst = PlTermExtension.ArgsLst(stateTerm);
+      var type = new StateType(stateTerm.Name, stateTerm.Arity);
+
+      if (!_StateTypeSpecs.ContainsKey(type))
+      {
+        return null;
+      }
+      var specsSet = _StateTypeSpecs[type];
+      IEnumerable<StateTerm> stateTermsArgs = null;
+
+      foreach (var specsLst in specsSet)
+      {
+        if (argsSatisfySpecs(specsLst, argsLst, out var stateTerms))
+        {
+          stateTermsArgs = stateTerms;
+          break;
+        }
+      }
+      return stateTermsArgs != null ? new State(type, stateTermsArgs) : null;
+    }
+
+    private bool argsSatisfySpecs(IEnumerable<Type> types, IEnumerable<PlTerm> args, out ImmutableList<StateTerm> stateTerms)
+    {
+      stateTerms = ImmutableList.Create<StateTerm>();
+      var typesArgs = types.Zip(args);
+      foreach ((Type Type, PlTerm Arg) typeArg in typesArgs)
+      {
+        if (typeArg.Type == typeof(Entity))
+        {
+          if (typeArg.Arg.IsAtom && _Entities.Contains(typeArg.Arg.ToString()))
+          {
+            stateTerms = stateTerms.Add(new StateTerm(new Entity(typeArg.Arg.ToString())));
+          }
+          else
+          {
+            return false;
+          }
+        }
+        else if (typeArg.Type == typeof(State))
+        {
+          if (typeArg.Arg.IsCompound)
+          {
+            var internalState = CreateStateFromTerm(typeArg.Arg);
+            if (internalState != null)
+            {
+              stateTerms = stateTerms.Add(new StateTerm(internalState));
+            }
+            else
+            {
+              return false;
+            }
+          }
+          else
+          {
+            return false;
+          }
+        }
+        else if (typeArg.Type == typeof(Event))
+        {
+          if (typeArg.Arg.IsCompound)
+          {
+            return false;
+          }
+          else
+          {
+            return false;
+          }
+        }
+        else if (typeArg.Type == typeof(Scalar))
+        {
+          if (typeArg.Arg.IsNumber) {
+            stateTerms = stateTerms.Add(new StateTerm(new Scalar(float.Parse(typeArg.Arg.ToString(), CultureInfo.InvariantCulture))));
+          }
+          else if (typeArg.Arg.IsAtom)
+          {
+            stateTerms = stateTerms.Add(new StateTerm(new Scalar(typeArg.Arg.ToString())));
+          }
+          else
+          {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    public ImmutableHashSet<State> States()
+    {
+      var statesSet = ImmutableHashSet.Create<State>();
+      var stsColl = PlQuery.PlCallQuery("allStates(States)").AsEnumerable();
+      foreach (var stateTerm in stsColl)
+      {
+        var state = CreateStateFromTerm(stateTerm);
+        statesSet = statesSet.Add(state);
+      }
+      return statesSet;
+    }
+
+    public void QueryGenerator(float currentTime, IDictionary<String, int> triggers)
+    {
+      var triggerTerms = triggers.Select(keyV => PlTerm.PlCompound(keyV.Key, new PlTerm(keyV.Value)));
+      var triggersLst = PlTermExtension.PlList(triggerTerms);
+      var queryArgs = new PlTerm[]
+      {
+        new PlTerm(currentTime),
+        triggersLst
+      };
+      PlQuery.PlCall("query", new PlTermV(queryArgs));
     }
   }
 }

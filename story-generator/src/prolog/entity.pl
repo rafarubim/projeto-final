@@ -1,4 +1,4 @@
-:- module(entity, [beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, type/1, category/1, entity/1, entityClassification/2]).
+:- module(entity, [beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, type/1, category/1, entity/1, entityClassification/2, allEntities/1]).
 
 % typeSpec(?Type:atom) is nondet
 
@@ -50,6 +50,15 @@ categoryClassification(Category, Classification) :-
 categoryClassification(Category, Classification) :-
   categorySpec(Category, Superclassification),
   categoryClassification(Superclassification, Classification).
+
+allEntities(Entities) :-
+  findall(
+    Entity,
+    (
+      entity:entity(Entity)
+    ),
+    Entities
+  ).
 
 % entityClassification(?Entity, ?Classification) is nondet
 entityClassification(Entity, Superclassification) :-
