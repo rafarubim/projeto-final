@@ -14,14 +14,11 @@ namespace GeneratorTest
       using (var gen = Generator.Instance)
       {
         var triggersLst = ImmutableList.Create<Trigger>();
-        triggersLst.Add(new Trigger("abc", 0));
-        triggersLst.Add(new Trigger("cba", 5));
-        gen.QueryGenerator(0, triggersLst);
+        triggersLst = triggersLst.Add(new Trigger("tick", 5));
+        triggersLst = triggersLst.Add(new Trigger("tick", 15));
+        var triggeredEvents = gen.QueryGenerator(15, triggersLst);
+
         var statesSet = gen.States;
-        foreach(var state in statesSet)
-        {
-          Console.WriteLine(state.Name);
-        }
       }
     }
   }

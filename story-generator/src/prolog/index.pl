@@ -20,10 +20,12 @@
   beginPlotDefinition/0,
   endPlotDefinition/0,
   beginEventProcesser/0,
-  query/2,
+  query/3,
   allStates/1,
   allSignatures/1,
-  allEntities/1
+  allEntities/1,
+  createAndExecuteEvent/2,
+  eventType/7
 ]).
 
 :- use_module(entity).

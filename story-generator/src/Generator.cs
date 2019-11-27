@@ -214,6 +214,21 @@ endPlotDefinition.
             return false;
           }
         }
+        else if (typeArg.Type == typeof(Scalar))
+        {
+          if (typeArg.Arg.IsNumber)
+          {
+            stateTerms = stateTerms.Add(new StateTerm(new Scalar(float.Parse(typeArg.Arg.ToString(), CultureInfo.InvariantCulture))));
+          }
+          else if (typeArg.Arg.IsAtom)
+          {
+            stateTerms = stateTerms.Add(new StateTerm(new Scalar(typeArg.Arg.ToString())));
+          }
+          else
+          {
+            return false;
+          }
+        }
         else if (typeArg.Type == typeof(State))
         {
           if (typeArg.Arg.IsCompound)
@@ -237,21 +252,15 @@ endPlotDefinition.
         {
           if (typeArg.Arg.IsCompound)
           {
-            return false;
-          }
-          else
-          {
-            return false;
-          }
-        }
-        else if (typeArg.Type == typeof(Scalar))
-        {
-          if (typeArg.Arg.IsNumber) {
-            stateTerms = stateTerms.Add(new StateTerm(new Scalar(float.Parse(typeArg.Arg.ToString(), CultureInfo.InvariantCulture))));
-          }
-          else if (typeArg.Arg.IsAtom)
-          {
-            stateTerms = stateTerms.Add(new StateTerm(new Scalar(typeArg.Arg.ToString())));
+            var internalEvent = CreateEventFromTerm(typeArg.Arg);
+            if (internalEvent != null)
+            {
+              stateTerms = stateTerms.Add(new StateTerm(internalEvent));
+            }
+            else
+            {
+              return false;
+            }
           }
           else
           {
@@ -277,16 +286,100 @@ endPlotDefinition.
       }
     }
 
-    public void QueryGenerator(float currentTime, IEnumerable<Trigger> triggers)
+    private ImmutableList<StateTerm> instanceStateTermArgs(IEnumerable<PlTerm> args)
+    {
+      var stateTerms = ImmutableList.Create<StateTerm>();
+      foreach (var arg in args)
+      {
+        if (arg.IsAtom && _Entities.Contains(arg.ToString()))
+        {
+          stateTerms = stateTerms.Add(new StateTerm(new Entity(arg.ToString())));
+        }
+        else if (arg.IsAtom)
+        {
+          stateTerms = stateTerms.Add(new StateTerm(new Scalar(arg.ToString())));
+        }
+        else if (arg.IsNumber)
+        {
+          stateTerms = stateTerms.Add(new StateTerm(new Scalar(float.Parse(arg.ToString(), CultureInfo.InvariantCulture))));
+        }
+        else if (arg.IsCompound)
+        {
+          var internalState = CreateStateFromTerm(arg);
+          if (internalState != null)
+          {
+            stateTerms = stateTerms.Add(new StateTerm(internalState));
+          }
+          else
+          {
+            var internalEvent = CreateEventFromTerm(arg);
+            if (internalEvent != null)
+            {
+              stateTerms = stateTerms.Add(new StateTerm(internalEvent));
+            }
+          }
+        }
+        else
+        {
+          return null;
+        }
+      }
+      return stateTerms;
+    }
+
+    private Event CreateEventFromTerm(PlTerm term)
+    {
+      if (term.Name != "event" || term.Arity != 2)
+      {
+        return null;
+      }
+      var queryEventArgs = new PlTerm[]
+      {
+        term[1],
+        new PlTerm("_"),
+        new PlTerm("_"),
+        new PlTerm("_"),
+        new PlTerm("_"),
+        new PlTerm("_"),
+        new PlTerm("_")
+      };
+      bool eventExists = PlQuery.PlCall("eventType", new PlTermV(queryEventArgs));
+      if (!eventExists)
+      {
+        return null;
+      }
+      var argsLst = PlTermExtension.ArgsLst(term[1]);
+      var stateTermsArgs =instanceStateTermArgs(argsLst);
+      if (stateTermsArgs == null)
+      {
+        return null;
+      }
+      return new Event(term[1].Name, term[1].Arity, stateTermsArgs, float.Parse(term[2].ToString(), CultureInfo.InvariantCulture));
+    }
+
+    public ImmutableList<Event> QueryGenerator(float currentTime, IEnumerable<Trigger> triggers)
     {
       var triggerTerms = triggers.Select(trigger => PlTerm.PlCompound(trigger.Name, new PlTerm(trigger.Time)));
       var triggersLst = PlTermExtension.PlList(triggerTerms);
+
       var queryArgs = new PlTerm[]
       {
         new PlTerm(currentTime),
-        triggersLst
+        triggersLst,
+        new PlTerm("TriggeredEvents")
       };
-      PlQuery.PlCall("query", new PlTermV(queryArgs));
+      var query = new PlQuery("query", new PlTermV(queryArgs));
+      var triggeredEventsTerms = query.Solutions.First()[2].ToList();
+
+      var triggeredEvents = ImmutableList.Create<Event>();
+
+      foreach(var trgEvTerm in triggeredEventsTerms)
+      {
+        var triggeredEvent = CreateEventFromTerm(trgEvTerm);
+        triggeredEvents = triggeredEvents.Add(triggeredEvent);
+      }
+
+      return triggeredEvents;
     }
   }
 }

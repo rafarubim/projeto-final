@@ -1,4 +1,4 @@
-:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/2]). 
+:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/3]). 
 
 :- use_module('utils/apply').
 :- use_module('utils/lists').
@@ -31,28 +31,34 @@ beginEventProcesser :-
 
 heuristic(_, 5).
 
-query(CurrentTime, TrgLst) :-
+query(CurrentTime, TrgLst, TriggeredEvents) :-
   currentTime(LastTime),
   LastTime < CurrentTime,
   setCurrentTime(CurrentTime),
   addTriggers(TrgLst),
-  processTriggers(CurrentTime).
+  processTriggers(CurrentTime, TriggeredEvents).
 
-processTriggers(_) :-
+processTriggers(_, []) :-
   \+ nextTrigger(_, _), !. % green cut
-processTriggers(MaxTime) :-
+processTriggers(MaxTime, []) :-
   nextTrigger(_, Time),
   Time > MaxTime, !. % green cut
-processTriggers(MaxTime) :-
+processTriggers(MaxTime, TriggeredEvents) :-
   nextTrigger(Trg, Time),
   Time =< MaxTime,
   popTrigger(_,_),
   eventTypesTriggeredBy(TriggeredEventsNames, Trg),
-  ignore(tryExecuteEventForPlot(Time, TriggeredEventsNames, Trg)),
-  processTriggers(MaxTime).
+  (
+    tryExecuteEventForPlot(Time, TriggeredEventsNames, Trg, TriggeredEvent),
+    TriggeredEvents = [TriggeredEvent|NextTriggeredEvents],
+    processTriggers(MaxTime, NextTriggeredEvents),
+    ! % red cut
+  ;
+    processTriggers(MaxTime, TriggeredEvents)
+  ).
   
 
-tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName) :-
+tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, Time)) :-
   allStates(States),
   currentPlotPos(PlotPos),
   plotSpec(Plot),
@@ -64,7 +70,7 @@ tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName) :-
     Plan = [],
     NewPlotPos is PlotPos + 1,
     setCurrentPlotPos(NewPlotPos),
-    tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName)
+    tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, Time))
   ;
     Plan = [FirstAction|_],
     passiveTrigger(TrgName),
