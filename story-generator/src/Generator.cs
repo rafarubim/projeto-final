@@ -72,6 +72,7 @@ beginEntitiesDefinition,
 beginStatesDefinition,
 beginTriggersDefinition,
 beginEventsDefinition,
+beginHeuristicPredicateDefinition,
 beginPlotDefinition.
 ");
       PlQuery.PlCall($"[\"{StorySpecsFileLocation}\"]");
@@ -80,6 +81,7 @@ endEntitiesDefinition,
 endStatesDefinition,
 endTriggersDefinition,
 endEventsDefinition,
+endHeuristicPredicateDefinition,
 endPlotDefinition.
 ");
 

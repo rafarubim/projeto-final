@@ -19,6 +19,8 @@
   endStatesDefinition/0,
   beginPlotDefinition/0,
   endPlotDefinition/0,
+  beginHeuristicPredicateDefinition/0,
+  endHeuristicPredicateDefinition/0,
   beginEventProcesser/0,
   query/3,
   allStates/1,

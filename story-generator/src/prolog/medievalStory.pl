@@ -68,6 +68,7 @@ eventTypeSpec(
 :- beginTriggersDefinition.
 :- beginEventsDefinition.
 :- beginPlotDefinition.
+:- beginHeuristicPredicateDefinition.
 
 % --------------------------------- Entities
 entitySpec(cassandra, woman).
@@ -101,10 +102,15 @@ plotSpec([
   ]
 ]).
 
+% --------------------------------- Heuristic predicate
+
+heuristicPredicateSpec(_, 5).
+
 :- endEntitiesDefinition.
 :- endStatesDefinition.
 :- endTriggersDefinition.
 :- endEventsDefinition.
 :- endPlotDefinition.
+:- endHeuristicPredicateDefinition.
 
 :- beginEventProcesser.

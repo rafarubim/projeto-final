@@ -31,3 +31,7 @@ plotSpec([
     savedBy(horace, cassandra)
   ]
 ]).
+
+% --------------------------------- Heuristic predicate
+
+heuristicPredicateSpec(_, 5).

@@ -1,4 +1,4 @@
-:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/3, createAndExecuteEventNow/1]). 
+:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginHeuristicPredicateDefinition/0, endHeuristicPredicateDefinition/0, beginEventProcesser/0, query/3, createAndExecuteEventNow/1]). 
 
 :- use_module('utils/apply').
 :- use_module('utils/lists').
@@ -8,9 +8,10 @@
 :- use_module(state).
 :- use_module(trigger).
 
-:- module_transparent([beginPlotDefinition/0, endPlotDefinition/0]).
+:- module_transparent([beginPlotDefinition/0, endPlotDefinition/0, beginHeuristicPredicateDefinition/0, endHeuristicPredicateDefinition/0]).
 
 :- dynamic plotSpec/1.
+:- dynamic heuristicPredicateSpec/2.
 :- dynamic currentPlotPos/1.
 :- dynamic currentTime/1.
 
@@ -18,6 +19,12 @@ beginPlotDefinition :-
   beginAssertRuntimeTerms(eventProcesser, [plotSpec/1]).
 
 endPlotDefinition :-
+  endAssertRuntimeTerms.
+
+beginHeuristicPredicateDefinition :-
+  beginAssertRuntimeTerms(eventProcesser, [heuristicPredicateSpec/2]).
+
+endHeuristicPredicateDefinition :-
   endAssertRuntimeTerms.
 
 beginEventProcesser :-
@@ -28,8 +35,6 @@ beginEventProcesser :-
   endDomainDefinition(eventProcesser),
   setCurrentPlotPos(0),
   setCurrentTime(0).
-
-heuristic(_, 5).
 
 query(CurrentTime, TrgLst, TriggeredEvents) :-
   currentTime(LastTime),
@@ -68,7 +73,7 @@ tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, T
   plotSpec(Plot),
   nth0(PlotPos, Plot, Goal),
   once(
-    planAStar(eventProcesser, States, Goal, heuristic, Plan, PlanCost, _, TriggeredEventsNames)
+    planAStar(eventProcesser, States, Goal, eventProcesser:heuristicPredicateSpec, Plan, PlanCost, _, TriggeredEventsNames)
   ),
   (
     Plan = [],
@@ -79,7 +84,7 @@ tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, T
     Plan = [FirstAction|_],
     passiveTrigger(TrgName),
     once(
-      planAStar(eventProcesser, States, Goal, heuristic, _, BestPlanCost, _)
+      planAStar(eventProcesser, States, Goal, eventProcesser:heuristicPredicateSpec, _, BestPlanCost, _)
     ),
     PlanCost =< BestPlanCost,
     createAndExecuteEvent(Time, FirstAction)
