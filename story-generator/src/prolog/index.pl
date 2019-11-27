@@ -24,7 +24,7 @@
   allStates/1,
   allSignatures/1,
   allEntities/1,
-  createAndExecuteEvent/2,
+  createAndExecuteEventNow/1,
   eventType/7
 ]).
 

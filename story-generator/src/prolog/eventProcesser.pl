@@ -1,4 +1,4 @@
-:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/3]). 
+:- module(eventProcesser, [beginPlotDefinition/0, endPlotDefinition/0, beginEventProcesser/0, query/3, createAndExecuteEventNow/1]). 
 
 :- use_module('utils/apply').
 :- use_module('utils/lists').
@@ -37,6 +37,10 @@ query(CurrentTime, TrgLst, TriggeredEvents) :-
   setCurrentTime(CurrentTime),
   addTriggers(TrgLst),
   processTriggers(CurrentTime, TriggeredEvents).
+
+createAndExecuteEventNow(EventTypeName) :-
+  currentTime(CurrentTime),
+  createAndExecuteEvent(CurrentTime, EventTypeName).
 
 processTriggers(_, []) :-
   \+ nextTrigger(_, _), !. % green cut

@@ -271,21 +271,6 @@ endPlotDefinition.
       return true;
     }
 
-    public ImmutableHashSet<State> States
-    {
-      get
-      {
-        var statesSet = ImmutableHashSet.Create<State>();
-        var stsColl = PlQuery.PlCallQuery("allStates(States)").AsEnumerable();
-        foreach (var stateTerm in stsColl)
-        {
-          var state = CreateStateFromTerm(stateTerm);
-          statesSet = statesSet.Add(state);
-        }
-        return statesSet;
-      }
-    }
-
     private ImmutableList<StateTerm> instanceStateTermArgs(IEnumerable<PlTerm> args)
     {
       var stateTerms = ImmutableList.Create<StateTerm>();
@@ -336,12 +321,12 @@ endPlotDefinition.
       var queryEventArgs = new PlTerm[]
       {
         term[1],
-        new PlTerm("_"),
-        new PlTerm("_"),
-        new PlTerm("_"),
-        new PlTerm("_"),
-        new PlTerm("_"),
-        new PlTerm("_")
+        PlTerm.PlVar(),
+        PlTerm.PlVar(),
+        PlTerm.PlVar(),
+        PlTerm.PlVar(),
+        PlTerm.PlVar(),
+        PlTerm.PlVar()
       };
       bool eventExists = PlQuery.PlCall("eventType", new PlTermV(queryEventArgs));
       if (!eventExists)
@@ -357,7 +342,76 @@ endPlotDefinition.
       return new Event(term[1].Name, term[1].Arity, stateTermsArgs, float.Parse(term[2].ToString(), CultureInfo.InvariantCulture));
     }
 
-    public ImmutableList<Event> QueryGenerator(float currentTime, IEnumerable<Trigger> triggers)
+    private PlTerm GetPlTermFromStateTerm(StateTerm stateTerm)
+    {
+      if (stateTerm.Type == typeof(Entity))
+      {
+        return new PlTerm(((Entity)stateTerm.Term).ToString());
+      }
+      if (stateTerm.Type == typeof(Scalar))
+      {
+        var scalar = (Scalar)stateTerm.Term;
+        if (scalar.Type == typeof(float))
+        {
+          return new PlTerm((float)scalar.Value);
+        }
+        if (scalar.Type == typeof(string))
+        {
+          return new PlTerm((string)scalar.Value);
+        }
+      }
+      if (stateTerm.Type == typeof(State))
+      {
+        return GetPlTermFromState((State)stateTerm.Term);
+      }
+      if (stateTerm.Type == typeof(Event))
+      {
+        return GetPlTermFromEvent((Event)stateTerm.Term);
+      }
+      return default;
+    }
+
+    private PlTerm GetPlTermFromState(State st)
+    {
+      var args = ImmutableArray.Create<PlTerm>();
+      foreach (var arg in st.Args)
+      {
+        var argTerm = GetPlTermFromStateTerm(arg);
+        args = args.Add(argTerm);
+      }
+
+      return PlTerm.PlCompound(st.Name, new PlTermV(args.ToArray()));
+    }
+
+    private PlTerm GetPlTermFromEvent(Event ev)
+    {
+      var args = ImmutableArray.Create<PlTerm>();
+      foreach (var arg in ev.Args)
+      {
+        var argTerm = GetPlTermFromStateTerm(arg);
+        args = args.Add(argTerm);
+      }
+
+      var eventSignature = PlTerm.PlCompound(ev.Name, new PlTermV(args.ToArray()));
+      return PlTerm.PlCompound("event", eventSignature, new PlTerm(ev.OcurrenceTime));
+    }
+
+    public ImmutableHashSet<State> States
+    {
+      get
+      {
+        var statesSet = ImmutableHashSet.Create<State>();
+        var stsColl = PlQuery.PlCallQuery("allStates(States)").AsEnumerable();
+        foreach (var stateTerm in stsColl)
+        {
+          var state = CreateStateFromTerm(stateTerm);
+          statesSet = statesSet.Add(state);
+        }
+        return statesSet;
+      }
+    }
+
+    public ImmutableList<Event> Query(float currentTime, IEnumerable<Trigger> triggers)
     {
       var triggerTerms = triggers.Select(trigger => PlTerm.PlCompound(trigger.Name, new PlTerm(trigger.Time)));
       var triggersLst = PlTermExtension.PlList(triggerTerms);
@@ -373,13 +427,19 @@ endPlotDefinition.
 
       var triggeredEvents = ImmutableList.Create<Event>();
 
-      foreach(var trgEvTerm in triggeredEventsTerms)
+      foreach (var trgEvTerm in triggeredEventsTerms)
       {
         var triggeredEvent = CreateEventFromTerm(trgEvTerm);
         triggeredEvents = triggeredEvents.Add(triggeredEvent);
       }
 
       return triggeredEvents;
+    }
+
+    public void ExecuteEvent(string name, IEnumerable<StateTerm> args)
+    {
+      var evTerm = GetPlTermFromEvent(new Event(name, args.Count(), args, 0));
+      PlQuery.PlCall("createAndExecuteEventNow", new PlTermV(evTerm[1]));
     }
   }
 }
