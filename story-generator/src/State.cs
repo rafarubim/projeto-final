@@ -5,12 +5,29 @@ namespace StoryGenerator
 {
   public class State
   {
-    public StateType Type { get; private set; }
+    private StateType Type { get; set; }
+
+    public string Name
+    {
+      get
+      {
+        return Type.Name;
+      }
+    }
+
+    public int Arity
+    {
+      get
+      {
+        return Type.Arity;
+      }
+    }
+
     public ImmutableList<StateTerm> Args { get; private set; }
 
-    public State(StateType type, IEnumerable<StateTerm> args)
+    public State(string name, int arity, IEnumerable<StateTerm> args)
     {
-      Type = type;
+      Type = new StateType(name, arity);
       Args = args.ToImmutableList();
     }
   }

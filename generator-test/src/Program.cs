@@ -1,6 +1,6 @@
 ﻿using StoryGenerator;
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace GeneratorTest
@@ -13,17 +13,14 @@ namespace GeneratorTest
       Generator.StorySpecsFileLocation = "src/storySpec.pl";
       using (var gen = Generator.Instance)
       {
-        //gen.Print();
-        //var dict = gen.TriggerTypes();
-        var testDict = new Dictionary<string, int>();
-        testDict.Add("abc", 0);
-        testDict.Add("cba", 5);
-        gen.QueryGenerator(0, testDict);
-        var statesSet = gen.States();
-        var filteredStates = statesSet.Where(state => state.Args.Any(arg => arg.Type == typeof(State)));
-        foreach(var state in filteredStates)
+        var triggersLst = ImmutableList.Create<Trigger>();
+        triggersLst.Add(new Trigger("abc", 0));
+        triggersLst.Add(new Trigger("cba", 5));
+        gen.QueryGenerator(0, triggersLst);
+        var statesSet = gen.States;
+        foreach(var state in statesSet)
         {
-          Console.WriteLine(((Entity)((State)state.Args.FirstOrDefault(arg => arg.Type == typeof(State)).Term).Args[1].Term));
+          Console.WriteLine(state.Name);
         }
       }
     }

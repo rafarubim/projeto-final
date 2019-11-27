@@ -1,6 +1,6 @@
 ﻿namespace StoryGenerator
 {
-  public class StateType
+  class StateType
   {
     public string Name { get; private set; }
     public int Arity { get; private set; }

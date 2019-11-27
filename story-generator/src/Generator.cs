@@ -194,7 +194,7 @@ endPlotDefinition.
           break;
         }
       }
-      return stateTermsArgs != null ? new State(type, stateTermsArgs) : null;
+      return stateTermsArgs != null ? new State(type.Name, type.Arity, stateTermsArgs) : null;
     }
 
     private bool argsSatisfySpecs(IEnumerable<Type> types, IEnumerable<PlTerm> args, out ImmutableList<StateTerm> stateTerms)
@@ -262,21 +262,24 @@ endPlotDefinition.
       return true;
     }
 
-    public ImmutableHashSet<State> States()
+    public ImmutableHashSet<State> States
     {
-      var statesSet = ImmutableHashSet.Create<State>();
-      var stsColl = PlQuery.PlCallQuery("allStates(States)").AsEnumerable();
-      foreach (var stateTerm in stsColl)
+      get
       {
-        var state = CreateStateFromTerm(stateTerm);
-        statesSet = statesSet.Add(state);
+        var statesSet = ImmutableHashSet.Create<State>();
+        var stsColl = PlQuery.PlCallQuery("allStates(States)").AsEnumerable();
+        foreach (var stateTerm in stsColl)
+        {
+          var state = CreateStateFromTerm(stateTerm);
+          statesSet = statesSet.Add(state);
+        }
+        return statesSet;
       }
-      return statesSet;
     }
 
-    public void QueryGenerator(float currentTime, IDictionary<String, int> triggers)
+    public void QueryGenerator(float currentTime, IEnumerable<Trigger> triggers)
     {
-      var triggerTerms = triggers.Select(keyV => PlTerm.PlCompound(keyV.Key, new PlTerm(keyV.Value)));
+      var triggerTerms = triggers.Select(trigger => PlTerm.PlCompound(trigger.Name, new PlTerm(trigger.Time)));
       var triggersLst = PlTermExtension.PlList(triggerTerms);
       var queryArgs = new PlTerm[]
       {
