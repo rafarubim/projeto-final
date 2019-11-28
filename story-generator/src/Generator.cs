@@ -127,7 +127,7 @@ endPlotDefinition.
         {
           return _stateTypeSpecs;
         }
-        var stateTypeSpecColl = PlQuery.PlCallQuery("allSignatures(Signatures)").AsEnumerable();
+        var stateTypeSpecColl = PlQuery.PlCallQuery("allStateTypes(StateTypes)").AsEnumerable();
         var stateTypeDict = ImmutableDictionary.Create<StateType, ImmutableHashSet<ImmutableList<Type>>>();
 
         foreach (var stateTypeSpec in stateTypeSpecColl)

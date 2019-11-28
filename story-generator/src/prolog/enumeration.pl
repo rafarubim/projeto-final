@@ -16,8 +16,6 @@ beginEnumsDefinition :-
 endEnumsDefinition :-
   endAssertRuntimeTerms.
 
-enumSpec(color, [black, red, blue, yellow, green, white, grey, pink, orange, purple]).
-
 % enumValue(?Enum:atom, ?Value:atom, -Complement:any) is nondet
 %
 % True if Enum is an enumeration and Value is one of its values with complement

@@ -1,5 +1,15 @@
 :- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, eventTypeToActionSpec/2, eventType/7, eventTypesTriggeredBy/2, createAndExecuteEvent/2]).
 
+eventTypeSpec(
+  move(Char, Plc1, Plc2), % Event type name
+  [standsIn(Char, Plc1)], % State Conditions
+  [Plc1 \== Plc2],        % Prolog Conditions
+  [tick],                 % Trigger Conditions
+  [tick(0)],              % Effect Triggers
+  [standsIn(Char, Plc1)], % Removed States
+  [standsIn(Char, Plc2)]  % Added States
+).
+
 % eventTypeSpec(?EventTypeName:compound_term, -StateConditions:list, -PrologConditions:list, -TriggerConditions:list, -EffectTriggers:list, -RmStates:list, -AddedStates:list) is nondet
 % eventTypeSpec(?EventType:compound_term, ?OcurrenceTime:number, -EffectTriggers:list, -RmStates:list, -AddedStates:list) is nondet
 
@@ -27,18 +37,11 @@ beginEventsDefinition :-
 endEventsDefinition :-
   endAssertRuntimeTerms.
 
+event(EventSignature, ) :-
+  eventSpec(). 
+
 eventType(Name, StCond, PlCond, TrgCond, TrgEff, RmSt, AddSt) :-
   eventTypeSpec(Name, StCond, PlCond, TrgCond, TrgEff, RmSt, AddSt).
-
-eventTypeSpec(
-  move(Char, Plc1, Plc2), % Event type name
-  [standsIn(Char, Plc1)], % State Conditions
-  [Plc1 \== Plc2],        % Prolog Conditions
-  [tick],                 % Trigger Conditions
-  [tick(0)],              % Effect Triggers
-  [standsIn(Char, Plc1)], % Removed States
-  [standsIn(Char, Plc2)]  % Added States
-).
 
 eventTypeToActionSpec(EventSpecTerm, ActionSpecTerm) :-
   EventSpecTerm =.. [eventTypeSpec, EventName, StateConditions, PrologConditions, _, _, Retractions, Assertions],

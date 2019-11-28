@@ -12,22 +12,22 @@ categorySpec(horse, animal).
 categorySpec(building, place).
 
 % --------------------------------- State types
-signatureSpec(builtIn, [
+stateTypeSpec(builtIn, [
   entityArg(building),
   entityArg(place)
 ]).
-signatureSpec(isKnight, [
+stateTypeSpec(isKnight, [
   entityArg(character)
 ]).
-signatureSpec(kidnappedBy, [
+stateTypeSpec(kidnappedBy, [
   entityArg(character),
   entityArg(character)
 ]).
-signatureSpec(defeatedBy, [
+stateTypeSpec(defeatedBy, [
   entityArg(character),
   entityArg(character)
 ]).
-signatureSpec(savedBy, [
+stateTypeSpec(savedBy, [
   entityArg(character),
   entityArg(character)
 ]).

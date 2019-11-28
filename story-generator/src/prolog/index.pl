@@ -24,7 +24,7 @@
   beginEventProcesser/0,
   query/3,
   allStates/1,
-  allSignatures/1,
+  allStateTypes/1,
   allEntities/1,
   createAndExecuteEventNow/1,
   eventType/7

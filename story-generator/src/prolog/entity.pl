@@ -1,5 +1,10 @@
 :- module(entity, [beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, type/1, category/1, entity/1, entityClassification/2, allEntities/1]).
 
+typeSpec(thing).
+typeSpec(character).
+typeSpec(place).
+typeSpec(animal).
+
 % typeSpec(?Type:atom) is nondet
 
 % categorySpec(?Category, -Superclassification) is nondet
@@ -11,7 +16,7 @@
 :- module_transparent([beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0]).
 
 :- dynamic typeSpec/1.
-:- dynamic categorySpec/1.
+:- dynamic categorySpec/2.
 :- dynamic entitySpec/2.
 
 beginEntityTypesDefinition :-
@@ -25,12 +30,6 @@ beginEntitiesDefinition :-
 
 endEntitiesDefinition :-
   endAssertRuntimeTerms.
-
-typeSpec(thing).
-typeSpec(character).
-typeSpec(place).
-typeSpec(relationship).
-typeSpec(animal).
 
 % type(?Type:atom) is nondet
 type(X) :-
