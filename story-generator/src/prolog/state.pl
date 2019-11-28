@@ -45,6 +45,10 @@ stateTypeSpec(knowsThat, [
   entityArg(character),
   eventArg
 ]).
+stateTypeSpec(thinksThat, [
+  entityArg(character),
+  stateArg
+]).
 stateTypeSpec(personalityOf, [
   entityArg(character),
   scalarArg(number),
