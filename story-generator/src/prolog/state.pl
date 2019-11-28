@@ -25,10 +25,10 @@ stateTypeSpec(ownedBy, [
   entityArg(animal),
   entityArg(character)
 ]).
-stateTypeSpec(isHolding,
+stateTypeSpec(isHolding, [
   entityArg(character),
   entityArg(thing)
-).
+]).
 stateTypeSpec(knowsPerson, [
   entityArg(character),
   entityArg(character)
