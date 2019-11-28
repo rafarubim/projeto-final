@@ -1,4 +1,4 @@
-:- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, eventTypeToActionSpec/2, eventType/7, eventTypesTriggeredBy/2, createAndExecuteEvent/2]).
+:- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, eventTypeToActionSpec/2, eventType/7, eventTypesTriggeredBy/2, createAndExecuteEvent/2, event/2]).
 
 eventTypeSpec(
   move(Char, Plc1, Plc2), % Event type name
@@ -37,8 +37,8 @@ beginEventsDefinition :-
 endEventsDefinition :-
   endAssertRuntimeTerms.
 
-event(EventSignature, ) :-
-  eventSpec(). 
+event(EventSignature, OcurrenceTime) :-
+  eventSpec(EventSignature, OcurrenceTime). 
 
 eventType(Name, StCond, PlCond, TrgCond, TrgEff, RmSt, AddSt) :-
   eventTypeSpec(Name, StCond, PlCond, TrgCond, TrgEff, RmSt, AddSt).

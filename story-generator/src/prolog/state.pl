@@ -162,13 +162,21 @@ argFromType(Arg, stateArg) :-
 argFromType(Arg, stateArg(StateTypeName)) :-
   isNotMetastate(StateTypeName),
   respectsSignature(Arg, StateTypeName).
+argFromType(event(EvSignature, OcurrenceTime), eventArg) :-
+  event(EvSignature, OcurrenceTime).
+argFromType(event(EvSignature, OcurrenceTime), eventArg(EvType)) :-
+  EvSignature =.. [EvType|_],
+  event(EvSignature, OcurrenceTime).
 
 isMetastate(StateTypeName) :-
   stateTypeSpec(StateTypeName, ArgsSpec),
   containsMetaArg(ArgsSpec).
 
 isNotMetastate(StateTypeName) :-
-  stateTypeSpec(StateTypeName, ArgsSpec),
+  bagof(ArgsSpec, stateTypeSpec(StateTypeName, ArgsSpec), AllArgSpecs),
+  maplist(doesNotContainMetaArg, AllArgSpecs).
+
+doesNotContainMetaArg(ArgsSpec) :-
   \+ containsMetaArg(ArgsSpec).
 
 containsMetaArg(ArgsSpec) :-
