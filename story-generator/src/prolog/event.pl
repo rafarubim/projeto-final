@@ -1,4 +1,4 @@
-:- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, eventTypeToActionSpec/2, eventType/7, eventTypesTriggeredBy/2, createAndExecuteEvent/2, event/2]).
+:- module(event, [beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, eventTypeToActionSpec/2, eventType/7, eventTypesTriggeredBy/2, createAndExecuteEvent/2, event/2, beginRemoveNativeEventTypes/0, endRemoveNativeEventTypes/0]).
 
 % Event type name
 % State Conditions
@@ -42,12 +42,13 @@ eventTypeSpec(
 :- use_module('utils/apply').
 :- use_module('utils/lists').
 :- use_module('utils/assertRuntimeTerms').
+:- use_module('utils/getRuntimeClauses').
 :- use_module('utils/set').
 :- use_module(entity).
 :- use_module(state).
 :- use_module(trigger).
 
-:- module_transparent([beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0]).
+:- module_transparent([beginEventTypesDefinition/0, endEventTypesDefinition/0, beginEventsDefinition/0, endEventsDefinition/0, beginRemoveNativeEventTypes/0, endRemoveNativeEventTypes/0]).
 
 :- dynamic eventTypeSpec/7.
 :- dynamic eventSpec/2.
@@ -63,6 +64,16 @@ beginEventsDefinition :-
 
 endEventsDefinition :-
   endAssertRuntimeTerms.
+
+beginRemoveNativeEventTypes :-
+  beginGetRuntimeClauses("event-removeNativeEventType/1", removeNativeEventType(_), true).
+
+endRemoveNativeEventTypes :-
+  endGetRuntimeClauses("event-removeNativeEventType/1", Clauses),
+  maplist(event:retractNativeEventType, Clauses).
+
+retractNativeEventType(removeNativeEventType(NativeType):-true) :-
+  retractall(eventTypeSpec(NativeType,_,_,_,_,_,_)).
 
 event(EventSignature, OcurrenceTime) :-
   eventSpec(EventSignature, OcurrenceTime). 

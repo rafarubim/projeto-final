@@ -2,11 +2,21 @@
 
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Genre Definition
 
+:- beginRemoveNativeEntityTypes.
+:- beginRemoveNativeStateTypes.
+:- beginRemoveNativeEventTypes.
 :- beginEnumsDefinition.
 :- beginEntityTypesDefinition.
 :- beginStateTypesDefinition.
 :- beginTriggerTypesDefinition.
 :- beginEventTypesDefinition.
+
+% --------------------------------- Remove native types
+
+removeNativeEntityType(animal).
+
+removeNativeStateType(knowsThat).
+removeNativeStateType(thinksThat).
 
 % --------------------------------- Enum types
 
@@ -16,7 +26,6 @@ enumSpec(speed, [slow, medium, fast]).
 categorySpec(man, character).
 categorySpec(woman, character).
 categorySpec(prince, man).
-categorySpec(horse, animal).
 categorySpec(building, place).
 
 % --------------------------------- State types
@@ -43,7 +52,7 @@ stateTypeSpec(savedBy, [
 % --------------------------------- Trigger types
 triggerTypeSpec(villainActs, passive).
 triggerTypeSpec(heroActs, passive).
-triggerTypeSpec(fight, active).
+triggerTypeSpec(defeat, active).
 
 % --------------------------------- Event types
 eventTypeSpec(
@@ -60,7 +69,7 @@ eventTypeSpec(
   [standsIn(Defeater, Plc), standsIn(Defeated, Plc), \+ kidnappedBy(Defeater, Defeated)],
   [entityClassification(Defeater, character), entityClassification(Defeated, character), Defeater \== Defeated],
   [heroActs],
-  [fight(0)],
+  [defeat(0)],
   [],
   [defeatedBy(Defeated, Defeater)]
 ).
@@ -68,12 +77,15 @@ eventTypeSpec(
   save(Savior, Saved, Plc),
   [standsIn(Savior, Plc), standsIn(Saved, Plc), kidnappedBy(Saved, Kidnapper), defeatedBy(Kidnapper, Savior)],
   [entityClassification(Savior, character), entityClassification(Saved, character), Savior \== Saved, Kidnapper \== Saved, Kidnapper \== Savior],
-  [fight],
-  [fight(0)],
+  [defeat],
+  [defeat(0)],
   [kidnappedBy(Saved, Kidnapper)],
   [savedBy(Saved, Savior)]
 ).
 
+:- endRemoveNativeEntityTypes.
+:- endRemoveNativeStateTypes.
+:- endRemoveNativeEventTypes.
 :- endEnumsDefinition.
 :- endEntityTypesDefinition.
 :- endStateTypesDefinition.
@@ -104,7 +116,7 @@ isKnight(cassandra).
 standsIn(horace, palace).
 standsIn(cassandra, capital).
 standsIn(morgarath, forest).
-standsIn(crown, palace).
+standsIn(crown, capital).
 isHolding(cassandra, crown).
 
 % --------------------------------- Triggers
@@ -119,13 +131,6 @@ plotSpec([
   ],
   [
     kidnappedBy(horace, Villain)
-  ],
-  [
-    standsIn(cassandra, forest)
-  ],
-  [
-    defeatedBy(Villain, Savior),
-    savedBy(horace, Savior)
   ],
   [
     \+ kidnappedBy(_,_),
@@ -146,7 +151,3 @@ heuristicPredicateSpec(_, 50).
 :- endHeuristicPredicateDefinition.
 
 :- beginEventProcesser.
-% allStates(S), member(standsIn(X,Y),S).
-% allStates(States), eventProcesser:plotSpec(Plot), nth0(1, Plot, Goal), eventProcesser:planAStar(eventProcesser, States, Goal, eventProcesser:heuristicPredicateSpec, Plan, PlanCost, _).
-% allStates(States), eventProcesser:plotSpec(Plot), nth0(1, Plot, Goal), planning:setTempActions(eventProcesser, [kidnap(_,_,_)]), planning:allowedActionExecution(eventProcesser, Action, States, ObtainedFacts), planning:revertTempActions(eventProcesser).
-% eventProcesser:allStates(S), eventProcesser:plotSpec(Plot), eventProcesser:currentPlotPos(Pos), eventProcesser:nth0(Pos, Plot, Goal), eventProcesser:planAStar(eventProcesser, S, Goal, eventProcesser:heuristicPredicateSpec, Plan, PlanCost, _, [kidnap(_,_,_)]).

@@ -1,4 +1,4 @@
-:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, allStateTypes/1, removeStates/1, addStates/1]).
+:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, allStateTypes/1, removeStates/1, addStates/1, beginRemoveNativeStateTypes/0, endRemoveNativeStateTypes/0]).
 
 stateTypeSpec(standsIn, [
   entityArg(character),
@@ -77,8 +77,9 @@ stateTypeSpec(userPersonality, [
 
 :- use_module('utils/apply').
 :- use_module('utils/assertRuntimeTerms').
+:- use_module('utils/getRuntimeClauses').
 
-:- module_transparent([beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0]).
+:- module_transparent([beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, beginRemoveNativeStateTypes/0, endRemoveNativeStateTypes/0]).
 
 :- dynamic stateTypeSpec/2.
 :- dynamic knows/2.
@@ -100,6 +101,16 @@ beginStatesDefinition :-
 
 endStatesDefinition :-
   endAssertRuntimeTerms.
+
+beginRemoveNativeStateTypes :-
+  beginGetRuntimeClauses("state-removeNativeStateType/1", removeNativeStateType(_), true).
+
+endRemoveNativeStateTypes :-
+  endGetRuntimeClauses("state-removeNativeStateType/1", Clauses),
+  maplist(state:retractNativeStateType, Clauses).
+
+retractNativeStateType(removeNativeStateType(NativeType):-true) :-
+  retractall(stateTypeSpec(NativeType, _)).
 
 respectsSignature(State) :-
   respectsSignature(State, _).

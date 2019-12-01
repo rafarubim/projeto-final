@@ -1,4 +1,4 @@
-:- module(entity, [beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, type/1, category/1, entity/1, entityClassification/2, allEntities/1]).
+:- module(entity, [beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, type/1, category/1, entity/1, entityClassification/2, allEntities/1, beginRemoveNativeEntityTypes/0, endRemoveNativeEntityTypes/0]).
 
 typeSpec(thing).
 typeSpec(character).
@@ -11,9 +11,10 @@ typeSpec(animal).
 
 % entitySpec(?Entity:atom, -Superclassification:atom) is nondet
 
+:- use_module('utils/getRuntimeClauses').
 :- use_module('utils/assertRuntimeTerms').
 
-:- module_transparent([beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0]).
+:- module_transparent([beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, beginRemoveNativeEntityTypes/0, endRemoveNativeEntityTypes/0]).
 
 :- dynamic typeSpec/1.
 :- dynamic categorySpec/2.
@@ -30,6 +31,16 @@ beginEntitiesDefinition :-
 
 endEntitiesDefinition :-
   endAssertRuntimeTerms.
+
+beginRemoveNativeEntityTypes :-
+  beginGetRuntimeClauses("entity-removeNativeEntityType/1", removeNativeEntityType(_), true).
+
+endRemoveNativeEntityTypes :-
+  endGetRuntimeClauses("entity-removeNativeEntityType/1", Clauses),
+  maplist(entity:retractNativeEntityType, Clauses).
+
+retractNativeEntityType(removeNativeEntityType(NativeType):-true) :-
+  retractall(typeSpec(NativeType)).
 
 % type(?Type:atom) is nondet
 type(X) :-

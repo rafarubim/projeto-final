@@ -52,6 +52,9 @@ working_directory(_, NewDir)
         throw new MissingMemberException();
       }
       PlQuery.PlCall(@"
+beginRemoveNativeEntityTypes,
+beginRemoveNativeStateTypes,
+beginRemoveNativeEventTypes,
 beginEnumsDefinition,
 beginEntityTypesDefinition,
 beginStateTypesDefinition,
@@ -60,6 +63,9 @@ beginEventTypesDefinition.
 ");
       PlQuery.PlCall($"[\"{GenreSpecsFileLocation}\"]");
       PlQuery.PlCall(@"
+endRemoveNativeEntityTypes,
+endRemoveNativeStateTypes,
+endRemoveNativeEventTypes,
 endEnumsDefinition,
 endEntityTypesDefinition,
 endStateTypesDefinition,
