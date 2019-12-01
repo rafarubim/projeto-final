@@ -1,4 +1,4 @@
-:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, allStateTypes/1, removeStates/1, addStates/1, beginRemoveNativeStateTypes/0, endRemoveNativeStateTypes/0]).
+:- module(state, [beginStateTypesDefinition/0, endStateTypesDefinition/0, beginStatesDefinition/0, endStatesDefinition/0, respectsSignature/1, allStates/1, allStateTypes/1, removeStates/1, addStates/1, beginRemoveNativeStateTypes/0, endRemoveNativeStateTypes/0, setUserPersonality/5, getUserPersonality/5]).
 
 stateTypeSpec(standsIn, [
   entityArg(character),
@@ -87,6 +87,7 @@ stateTypeSpec(userPersonality, [
 :- dynamic distanceInKilometers/3.
 :- dynamic knowsThat/2.
 :- dynamic hasColor/2.
+:- dynamic userPersonality/5.
 
 beginStateTypesDefinition :-
   beginAssertRuntimeTerms(state, [stateTypeSpec/2]).
@@ -141,6 +142,13 @@ allStateTypes(StateTypes) :-
     ),
     StateTypes
   ).
+
+getUserPersonality(Openess, Conscientiousness, Extraversion, Agreeableness, Neuroticism) :-
+  userPersonality(Openess, Conscientiousness, Extraversion, Agreeableness, Neuroticism).
+
+setUserPersonality(Openess, Conscientiousness, Extraversion, Agreeableness, Neuroticism) :-
+  retractall(userPersonality(Openess, Conscientiousness, Extraversion, Agreeableness, Neuroticism)),
+  assert(userPersonality(Openess, Conscientiousness, Extraversion, Agreeableness, Neuroticism)).
 
 removeStates(States) :-
   maplist(retractall, States).

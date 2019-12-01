@@ -449,5 +449,32 @@ endPlotDefinition.
       var evTerm = GetPlTermFromEvent(new Event(name, args.Count(), args, 0));
       PlQuery.PlCall("createAndExecuteEventNow", new PlTermV(evTerm[1]));
     }
+
+    public UserPersonality UserPersonality
+    {
+      get
+      {
+        var personalityQuery = new PlQuery("getUserPersonality(Openess, Conscientiousness, Extraversion, Agreeableness, Neuroticism)");
+        var sols = personalityQuery.SolutionVariables.First();
+        var openess = float.Parse(sols["Openess"].ToString(), CultureInfo.InvariantCulture);
+        var conscientiousness = float.Parse(sols["Conscientiousness"].ToString(), CultureInfo.InvariantCulture);
+        var extraversion = float.Parse(sols["Extraversion"].ToString(), CultureInfo.InvariantCulture);
+        var agreeableness = float.Parse(sols["Agreeableness"].ToString(), CultureInfo.InvariantCulture);
+        var neuroticism = float.Parse(sols["Neuroticism"].ToString(), CultureInfo.InvariantCulture);
+        return new UserPersonality(openess, conscientiousness, extraversion, agreeableness, neuroticism);
+      }
+      set
+      {
+        var personalityArgs = new PlTerm[]
+        {
+          new PlTerm(value.Openess),
+          new PlTerm(value.Conscientiousness),
+          new PlTerm(value.Extraversion),
+          new PlTerm(value.Agreeableness),
+          new PlTerm(value.Neuroticism)
+        };
+        PlQuery.PlCall("setUserPersonality", new PlTermV(personalityArgs));
+      }
+    }
   }
 }

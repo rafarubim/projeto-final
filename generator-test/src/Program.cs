@@ -14,9 +14,18 @@ namespace GeneratorTest
       using (var gen = Generator.Instance)
       {
         var triggersLst = ImmutableList.Create<Trigger>();
-        triggersLst = triggersLst.Add(new Trigger("tick", 5));
-        triggersLst = triggersLst.Add(new Trigger("tick", 15));
-        var triggeredEvents = gen.Query(15, triggersLst);
+        var triggeredEvents = gen.Query(1, triggersLst);
+
+        gen.UserPersonality = new UserPersonality(1,0,1,0,1);
+
+        Console.WriteLine("User personality:  -----------------");
+        var personality = gen.UserPersonality;
+        Console.WriteLine($"Openess: {personality.Openess}");
+        Console.WriteLine($"Conscientiousness: {personality.Conscientiousness}");
+        Console.WriteLine($"Extraversion: {personality.Extraversion}");
+        Console.WriteLine($"Agreeableness: {personality.Agreeableness}");
+        Console.WriteLine($"Neuroticism: {personality.Neuroticism}");
+
         Console.WriteLine("Events triggered:  -----------------");
         
         foreach(var ev in triggeredEvents)
@@ -34,7 +43,7 @@ namespace GeneratorTest
           Console.WriteLine(ev.OcurrenceTime);
           Console.WriteLine();
         }
-
+        /*
         var statesSet = gen.States;
         Console.WriteLine("States:  --------------------------");
         foreach (var st in statesSet)
@@ -50,7 +59,7 @@ namespace GeneratorTest
           }
           Console.WriteLine();
         }
-
+        
         var termArgs = new StateTerm[]
         {
           new StateTerm(new Entity("cassandra")),
@@ -74,6 +83,7 @@ namespace GeneratorTest
           }
           Console.WriteLine();
         }
+        */
       }
     }
   }

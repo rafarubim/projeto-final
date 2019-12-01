@@ -13,6 +13,7 @@ typeSpec(animal).
 
 :- use_module('utils/getRuntimeClauses').
 :- use_module('utils/assertRuntimeTerms').
+:- use_module('utils/apply').
 
 :- module_transparent([beginEntityTypesDefinition/0, endEntityTypesDefinition/0, beginEntitiesDefinition/0, endEntitiesDefinition/0, beginRemoveNativeEntityTypes/0, endRemoveNativeEntityTypes/0]).
 

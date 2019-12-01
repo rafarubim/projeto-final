@@ -33,7 +33,9 @@
   allStateTypes/1,
   allEntities/1,
   createAndExecuteEventNow/1,
-  eventType/7
+  eventType/7,
+  setUserPersonality/5,
+  getUserPersonality/5
 ]).
 
 :- use_module(entity).
