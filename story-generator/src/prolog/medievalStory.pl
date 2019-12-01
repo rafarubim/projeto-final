@@ -41,7 +41,7 @@ stateTypeSpec(savedBy, [
 ]).
 
 % --------------------------------- Trigger types
-triggerTypeSpec(villainStrikes, passive).
+triggerTypeSpec(villainActs, passive).
 triggerTypeSpec(heroActs, passive).
 triggerTypeSpec(fight, active).
 
@@ -49,17 +49,17 @@ triggerTypeSpec(fight, active).
 eventTypeSpec(
   kidnap(Kidnapper, Kidnapped, Plc),
   [standsIn(Kidnapper, Plc), standsIn(Kidnapped, Plc)],
-  [entityClassification(Kidnapper, character), entityClassification(Kidnapped, character), Kidnapper \== Kidnapped, Kidnapper \== cassandra],
-  [villainStrikes],
-  [],
+  [entityClassification(Kidnapper, character), entityClassification(Kidnapped, character), Kidnapper \== Kidnapped, Kidnapper == morgarath],
+  [villainActs],
+  [tick(1)],
   [],
   [kidnappedBy(Kidnapped, Kidnapper)]
 ).
 eventTypeSpec(
   defeat(Defeater, Defeated, Plc),
-  [standsIn(Defeater, Plc), standsIn(Defeated, Plc)],
+  [standsIn(Defeater, Plc), standsIn(Defeated, Plc), \+ kidnappedBy(Defeater, Defeated)],
   [entityClassification(Defeater, character), entityClassification(Defeated, character), Defeater \== Defeated],
-  [heroStrikes],
+  [heroActs],
   [fight(0)],
   [],
   [defeatedBy(Defeated, Defeater)]
@@ -108,8 +108,9 @@ standsIn(crown, palace).
 isHolding(cassandra, crown).
 
 % --------------------------------- Triggers
-tick(0).
-villainStrikes(10).
+tick(1).
+villainActs(10).
+heroActs(20).
 
 % --------------------------------- Plot
 plotSpec([
@@ -118,6 +119,13 @@ plotSpec([
   ],
   [
     kidnappedBy(horace, Villain)
+  ],
+  [
+    standsIn(cassandra, forest)
+  ],
+  [
+    defeatedBy(Villain, Savior),
+    savedBy(horace, Savior)
   ],
   [
     \+ kidnappedBy(_,_),
@@ -138,3 +146,7 @@ heuristicPredicateSpec(_, 50).
 :- endHeuristicPredicateDefinition.
 
 :- beginEventProcesser.
+% allStates(S), member(standsIn(X,Y),S).
+% allStates(States), eventProcesser:plotSpec(Plot), nth0(1, Plot, Goal), eventProcesser:planAStar(eventProcesser, States, Goal, eventProcesser:heuristicPredicateSpec, Plan, PlanCost, _).
+% allStates(States), eventProcesser:plotSpec(Plot), nth0(1, Plot, Goal), planning:setTempActions(eventProcesser, [kidnap(_,_,_)]), planning:allowedActionExecution(eventProcesser, Action, States, ObtainedFacts), planning:revertTempActions(eventProcesser).
+% eventProcesser:allStates(S), eventProcesser:plotSpec(Plot), eventProcesser:currentPlotPos(Pos), eventProcesser:nth0(Pos, Plot, Goal), eventProcesser:planAStar(eventProcesser, S, Goal, eventProcesser:heuristicPredicateSpec, Plan, PlanCost, _, [kidnap(_,_,_)]).

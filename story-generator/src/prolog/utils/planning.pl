@@ -534,9 +534,21 @@ planAStar_(Namespace, Heap, Goals, Heuristic, ForbiddenStates, Plan, PlanCost, F
 % in OpenedFacts.
 openNonForbiddenActionsInHeap(Namespace, ForbiddenStates, Heuristic, MaxCost, Heap, NewHeap, OpenedFacts) :-
   get_from_heap(Heap, HalfPlanCost, halfPlanExecution(HalfPlan, OpenedFacts), PopedHeap),
-  findall(actionExecution(Action, ObtainedFacts), allowedActionExecution(Namespace, Action, OpenedFacts, ObtainedFacts), AllActionExecutions),
+  allAllowedActionExecutions(Namespace, OpenedFacts, AllActionExecutions),
   filterNonForbiddenActionExecutions(AllActionExecutions, ForbiddenStates, NonForbiddenActions),
   addPlanExecutionsToHeap(NonForbiddenActions, Heuristic, MaxCost, HalfPlanCost, HalfPlan, PopedHeap, NewHeap).
+
+% allAllowedActionExecutions(++Namespace:atom, ++Facts:list, -AllActionExecutions:list) is det
+%
+% True if AllActionExecutions is a list of all allowed actions, given a Namespace and the set of Facts.
+allAllowedActionExecutions(Namespace, Facts, AllActionExecutions) :-
+  setof(
+    actionExecution(Action, ObtainedFacts),
+    ObtainedFacts^
+    allowedActionExecution(Namespace, Action, Facts, ObtainedFacts),
+    AllActionExecutions
+  ), !. % red cut
+allAllowedActionExecutions(_,_,[]).
 
 % filterNonForbiddenActionExecutions(++ActionExecutions:list, ++ForbiddenStates:list, -NonForbiddenActionExecutions:list) is det
 % 

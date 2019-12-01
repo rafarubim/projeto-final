@@ -81,6 +81,7 @@ tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, T
     Plan = [],
     NewPlotPos is PlotPos + 1,
     setCurrentPlotPos(NewPlotPos),
+    setCurrentPlot(Plot),
     tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, Time))
   ;
     Plan = [FirstAction|_],
@@ -99,6 +100,10 @@ tryExecuteEventForPlot(Time, TriggeredEventsNames, TrgName, event(FirstAction, T
 setCurrentPlotPos(Pos) :-
   retractall(currentPlotPos(_)),
   assert(currentPlotPos(Pos)).
+
+setCurrentPlot(Plot) :-
+  retractall(plotSpec(_)),
+  assert(plotSpec(Plot)).
 
 setCurrentTime(Time) :-
   retractall(currentTime(_)),

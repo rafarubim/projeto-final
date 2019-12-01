@@ -105,8 +105,10 @@ respectsSignature(State) :-
   respectsSignature(State, _).
 
 allStates(States) :-
-  findall(
+  setof(
     StateTerm,
+    StateTypeName^
+    ArgsSpec^
     (
       state:stateTypeSpec(StateTypeName, ArgsSpec),
       length(ArgsSpec, ArgsAmt),
@@ -115,7 +117,8 @@ allStates(States) :-
       StateTerm
     ),
     States
-  ).
+  ), !. % red cut
+allStates([]).
 
 allStateTypes(StateTypes) :-
   findall(
