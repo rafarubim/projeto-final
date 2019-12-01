@@ -28,25 +28,9 @@ isSet([H|T]) :-
 %! elementOf( ?Element:any, ++Set:list) is nondet
 %
 % True if Element belongs to Set. ?Element returns each set element.
-/*
 elementOf(H, [H|_]).
 elementOf(X, [_|T]) :-
   elementOf(X, T).
-*/
-:- dynamic element/1.
-elementOf(X, L) :-
-  maplist(set:assertElement, L),
-  (
-    element(X),
-    retractall(element(_))
-  ;
-    \+element(X),
-    retractall(element(_)),
-    fail
-  ).
-
-assertElement(X) :-
-  assert(element(X)).
 
 %! setDiff(++SetA:list, ++SetB:list, -Diff:list) is multi
 %
