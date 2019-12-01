@@ -83,7 +83,7 @@ eventContextTerm(Term, event:Term).
 % Events
 eventTypesTriggeredBy(NamesEventTypes, TrgType) :-
   findall(
-      EventName,
+    EventName,
     (
       eventTypeSpec(EventName, _, _, TrgConds, _, _, _),
       elementOf(TrgType, TrgConds)

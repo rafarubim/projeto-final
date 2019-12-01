@@ -109,6 +109,8 @@ allStates(States) :-
     StateTerm,
     StateTypeName^
     ArgsSpec^
+    ArgsAmt^
+    VarArgs^
     (
       state:stateTypeSpec(StateTypeName, ArgsSpec),
       length(ArgsSpec, ArgsAmt),
