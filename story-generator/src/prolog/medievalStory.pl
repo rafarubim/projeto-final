@@ -41,18 +41,37 @@ stateTypeSpec(savedBy, [
 ]).
 
 % --------------------------------- Trigger types
-triggerTypeSpec(villainStrikes, active).
-triggerTypeSpec(heroActs, active).
+triggerTypeSpec(villainStrikes, passive).
+triggerTypeSpec(heroActs, passive).
+triggerTypeSpec(fight, active).
 
 % --------------------------------- Event types
 eventTypeSpec(
   kidnap(Kidnapper, Kidnapped, Plc),
   [standsIn(Kidnapper, Plc), standsIn(Kidnapped, Plc)],
-  [Kidnapper \== Kidnapped, Kidnapper \== cassandra],
+  [entityClassification(Kidnapper, character), entityClassification(Kidnapped, character), Kidnapper \== Kidnapped, Kidnapper \== cassandra],
   [villainStrikes],
   [],
   [],
   [kidnappedBy(Kidnapped, Kidnapper)]
+).
+eventTypeSpec(
+  defeat(Defeater, Defeated, Plc),
+  [standsIn(Defeater, Plc), standsIn(Defeated, Plc)],
+  [entityClassification(Defeater, character), entityClassification(Defeated, character), Defeater \== Defeated],
+  [heroStrikes],
+  [fight(0)],
+  [],
+  [defeatedBy(Defeated, Defeater)]
+).
+eventTypeSpec(
+  save(Savior, Saved, Plc),
+  [standsIn(Savior, Plc), standsIn(Saved, Plc), kidnappedBy(Saved, Kidnapper), defeatedBy(Kidnapper, Savior)],
+  [entityClassification(Savior, character), entityClassification(Saved, character), Savior \== Saved, Kidnapper \== Saved, Kidnapper \== Savior],
+  [fight],
+  [fight(0)],
+  [kidnappedBy(Saved, Kidnapper)],
+  [savedBy(Saved, Savior)]
 ).
 
 :- endEnumsDefinition.
@@ -74,26 +93,31 @@ eventTypeSpec(
 entitySpec(cassandra, woman).
 entitySpec(horace, prince).
 entitySpec(capital, place).
+entitySpec(forest, place).
 entitySpec(palace, building).
 entitySpec(morgarath, man).
+entitySpec(crown, thing).
 
 % --------------------------------- States
 builtIn(palace, capital).
 isKnight(cassandra).
 standsIn(horace, palace).
-standsIn(cassandra, palace).
-standsIn(morgarath, capital).
+standsIn(cassandra, capital).
+standsIn(morgarath, forest).
+standsIn(crown, palace).
+isHolding(cassandra, crown).
 
 % --------------------------------- Triggers
+tick(0).
 villainStrikes(10).
 
 % --------------------------------- Plot
 plotSpec([
   [
-    kidnappedBy(horace, Villain)
+    isHolding(horace, crown)
   ],
   [
-    kidnappedBy(cassandra, Villain)
+    kidnappedBy(horace, Villain)
   ],
   [
     \+ kidnappedBy(_,_),
@@ -104,7 +128,7 @@ plotSpec([
 
 % --------------------------------- Heuristic predicate
 
-heuristicPredicateSpec(_, 5).
+heuristicPredicateSpec(_, 50).
 
 :- endEntitiesDefinition.
 :- endStatesDefinition.

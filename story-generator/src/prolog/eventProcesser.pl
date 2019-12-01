@@ -3,6 +3,7 @@
 :- use_module('utils/apply').
 :- use_module('utils/lists').
 :- use_module('utils/assertRuntimeTerms').
+:- use_module('utils/getRuntimeClauses').
 :- use_module('utils/planning').
 :- use_module(event).
 :- use_module(state).
@@ -22,10 +23,11 @@ endPlotDefinition :-
   endAssertRuntimeTerms.
 
 beginHeuristicPredicateDefinition :-
-  beginAssertRuntimeTerms(eventProcesser, [heuristicPredicateSpec/2]).
+  beginGetRuntimeClauses("eventProcesser--heuristicPredicateSpec/2", heuristicPredicateSpec(_,_), _).
 
 endHeuristicPredicateDefinition :-
-  endAssertRuntimeTerms.
+  endGetRuntimeClauses("eventProcesser--heuristicPredicateSpec/2", Clauses),
+  maplist(eventProcesser:assert, Clauses).
 
 beginEventProcesser :-
   beginDomainDefinition(eventProcesser),

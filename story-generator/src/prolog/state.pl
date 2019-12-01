@@ -8,22 +8,10 @@ stateTypeSpec(standsIn, [
   entityArg(thing),
   entityArg(place)
 ]).
-stateTypeSpec(liesIn, [
-  entityArg(thing),
-  entityArg(place)
-]).
 stateTypeSpec(distanceInKilometers, [
   entityArg(place),
   entityArg(place),
   scalarArg(number)
-]).
-stateTypeSpec(ownedBy, [
-  entityArg(thing),
-  entityArg(character)
-]).
-stateTypeSpec(ownedBy, [
-  entityArg(animal),
-  entityArg(character)
 ]).
 stateTypeSpec(isHolding, [
   entityArg(character),
@@ -60,6 +48,13 @@ stateTypeSpec(personalityOf, [
 stateTypeSpec(relationshipBetween, [
   entityArg(character),
   entityArg(character),
+  scalarArg(number),
+  scalarArg(number),
+  scalarArg(number),
+  scalarArg(number),
+  scalarArg(number)
+]).
+stateTypeSpec(userPersonality, [
   scalarArg(number),
   scalarArg(number),
   scalarArg(number),

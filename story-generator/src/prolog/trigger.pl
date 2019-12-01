@@ -1,5 +1,8 @@
 :- module(trigger, [beginTriggerTypesDefinition/0, endTriggerTypesDefinition/0, beginTriggersDefinition/0, endTriggersDefinition/0, addTriggers/1, nextTrigger/2, popTrigger/2, triggerTerm/3, passiveTrigger/1, allTriggerTypes/1]).
 
+triggerTypeSpec(tick, passive).
+triggerTypeSpec(motion, active).
+
 % triggerSpec(?TriggerName:atom) is nondet
 %
 % True if TriggerName is a trigger.
@@ -14,8 +17,6 @@
 :- dynamic tick/1.
 
 :- empty_heap(Heap), assert(triggerHeap(Heap)).
-
-triggerTypeSpec(tick, passive).
 
 beginTriggerTypesDefinition :-
   beginAssertRuntimeTerms(trigger, [triggerTypeSpec/2]).
