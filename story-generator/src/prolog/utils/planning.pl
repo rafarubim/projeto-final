@@ -586,15 +586,20 @@ addHalfPlanToHeapIfBetterOrEqual(Heap, HalfPlanCost, halfPlanExecution(HalfPlan,
   (
     equivalentTo(PopedFacts, Facts), !, % red cut
     (
-      HalfPlanCost =:= PopedCost, !, % green cut
-      add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), MiddleHeap),
-      add_to_heap(MiddleHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
-    ;
       HalfPlanCost < PopedCost, !, % green cut
       add_to_heap(PopedHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
     ;
-      HalfPlanCost > PopedCost,
+      HalfPlanCost > PopedCost, !, % green cut
       add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), NewHeap)
+    ;
+      HalfPlanCost =:= PopedCost,
+      PopedHalfPlan == HalfPlan, !, % green cut
+      add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), NewHeap)
+    ;
+      HalfPlanCost =:= PopedCost,
+      PopedHalfPlan \== HalfPlan, !, % green cut
+      add_to_heap(PopedHeap, PopedCost, halfPlanExecution(PopedHalfPlan, PopedFacts), MiddleHeap),
+      add_to_heap(MiddleHeap, HalfPlanCost, halfPlanExecution(HalfPlan, Facts), NewHeap)
     )
   ;
     % \+ equivalentTo(PopedFacts, Facts)
