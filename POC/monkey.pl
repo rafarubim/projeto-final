@@ -41,7 +41,7 @@ facts([
   strength(monkey, 0)
   ]).
 
-heuristic(actionExecution(carry(b, c),_), 10) :- !.
+heuristic(actionExecution(carry(b, c),_), 15) :- !.
 heuristic(actionExecution(_,_), 5).
 
 monkeyAStarPlan(Plan) :- facts(X), planAStar(monkeyDomain, X, [win], heuristic, Plan, _, _).
