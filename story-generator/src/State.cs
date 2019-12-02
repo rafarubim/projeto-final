@@ -5,13 +5,13 @@ namespace StoryGenerator
 {
   public class State
   {
-    private StateType Type { get; set; }
+    private StateType _Type { get; set; }
 
     public string Name
     {
       get
       {
-        return Type.Name;
+        return _Type.Name;
       }
     }
 
@@ -19,7 +19,7 @@ namespace StoryGenerator
     {
       get
       {
-        return Type.Arity;
+        return _Type.Arity;
       }
     }
 
@@ -27,7 +27,7 @@ namespace StoryGenerator
 
     public State(string name, int arity, IEnumerable<StateTerm> args)
     {
-      Type = new StateType(name, arity);
+      _Type = new StateType(name, arity);
       Args = args.ToImmutableList();
     }
   }

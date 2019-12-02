@@ -407,20 +407,20 @@ satisfiedPrologGoalsList(GoalsList) :-
 executePrologEffects(EffectsList) :-
   maplist(ignore, EffectsList).
 
-% separatedGoals(+Goals:list, -InclusionGoals:list, -AbscenceGoals:list) is det
+% separatedGoals(+Goals:list, -InclusionGoals:list, -AbsenceGoals:list) is det
 %
 % @arg Goals A set of goals which may or may not be negation terms.
 % @arg InclusionGoals A set of non-negation terms obtained from Goals.
-% @arg AbscenceGoals A set of non-negation terms which were originally negations in
+% @arg AbsenceGoals A set of non-negation terms which were originally negations in
 %                    Goals.
 %
 % This predicate parses the terms which are and aren't negations in Goals. The ones
 % that aren't are returned in -InclusionGoals. The ones that are negations are
-% returned in -AbscenceGoals, but WITHOUT the negation itself (eg. "(\+x)" becomes
+% returned in -AbsenceGoals, but WITHOUT the negation itself (eg. "(\+x)" becomes
 % "x")
-separatedGoals(Goals, InclusionGoals, AbscenceGoals) :-
+separatedGoals(Goals, InclusionGoals, AbsenceGoals) :-
   partition(isNegation, Goals, Negations, InclusionGoals),
-  maplist(negation, AbscenceGoals, Negations).
+  maplist(negation, AbsenceGoals, Negations).
 
 % updatedFacts(++Facts:list, ++RemovedFacts:list, ++AddedFacts:list, -NewFacts:list) is multi
 %
@@ -451,9 +451,9 @@ allowedActionExecution(Namespace, Action, Facts, NewFacts) :-
   maplist(termWithNamespace(Namespace), TypeSpecs, TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(TypeSpecsWithNamespace),
   satisfiedPrologGoalsList(PrologConditions),
-  separatedGoals(Conditions, InclusionConditions, AbscenceConditions),
+  separatedGoals(Conditions, InclusionConditions, AbsenceConditions),
   subsetOf(InclusionConditions, Facts),
-  emptyIntersection(AbscenceConditions, Facts),
+  emptyIntersection(AbsenceConditions, Facts),
   satisfiedPrologGoalsList(MorePrologConditions),
   executePrologEffects(PrologEffects),
   updatedFacts(Facts, RemovedFacts, AddedFacts, NewFacts).
