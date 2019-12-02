@@ -1,5 +1,3 @@
-:- use_module(index).
-
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Genre Definition
 
 % --------------------------------- Remove native types
@@ -11,7 +9,7 @@ removeNativeStateType(thinksThat).
 
 % --------------------------------- Enum types
 
-enumSpec(speed, [slow, medium, fast]).
+
 
 % --------------------------------- Entity types
 categorySpec(man, character).

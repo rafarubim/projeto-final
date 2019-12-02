@@ -20,7 +20,7 @@ removeNativeStateType(thinksThat).
 
 % --------------------------------- Enum types
 
-enumSpec(speed, [slow, medium, fast]).
+
 
 % --------------------------------- Entity types
 categorySpec(man, character).
