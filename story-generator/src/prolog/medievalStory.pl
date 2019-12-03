@@ -15,7 +15,7 @@
 
 removeNativeEntityType(animal).
 
-removeNativeStateType(knowsThat).
+%removeNativeStateType(knowsThat).
 removeNativeStateType(thinksThat).
 
 % --------------------------------- Enum types
@@ -123,6 +123,9 @@ isHolding(cassandra, crown).
 tick(1).
 villainActs(10).
 heroActs(20).
+
+% --------------------------------- Events
+eventSpec(move(cassandra, forest, capital), -5).
 
 % --------------------------------- Plot
 plotSpec([

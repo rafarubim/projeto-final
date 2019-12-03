@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>getruntimeclauses.pl</title>
+
+<link rel="stylesheet" type="text/css" href="../../../../pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>getruntimeclauses.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="beginGetRuntimeClauses/3"><b class="pred">beginGetRuntimeClauses</b><var class="arglist">(++Namespace:atom, +Head:any, +Body:any)</var></a> is <b class="det">det</b></dt><dd class="defbody">
+
+<dl class="tags">
+<dt class="tag">Arguments:</dt><dd>
+
+<table class="arglist">
+<tr><td><var>Namespace</var></td><td class="argdescr">- This could be any atom. The <var>Namespace</var> used here should also be
+used by the corresponding call to "endGetRuntimeClauses".</td></tr>
+<tr><td><var>Head</var></td><td class="argdescr">- An expression that should match the head of clauses you're interested in.</td></tr>
+<tr><td><var>Body</var></td><td class="argdescr">- An expression that should match the body of clauses you're interested in.
+
+<p>
+Begins watching clause definition that matches (<var>Head</var> :- <var>Body</var>). All clauses
+defined in the runtime after this is called and before "endGetRuntimeClauses"
+is called are kept in a list which is returned by "endGetRuntimeClauses".</p></td></tr>
+</table>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h2 class="undoc">Undocumented predicates</h2>
+
+<p>
+The following predicates are exported, but not or incorrectly documented.</p>
+
+<dl class="undoc">
+<dt class="undoc"><span style="float:right">&nbsp;</span><a name="endGetRuntimeClauses/2"><b class="pred">endGetRuntimeClauses</b><var class="arglist">(Arg1, Arg2)</var></a></dt>
+</dl>
+
+</body>
+</html>

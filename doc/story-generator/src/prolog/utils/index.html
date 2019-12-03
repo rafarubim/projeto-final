@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>utils</title>
+
+<link rel="stylesheet" type="text/css" href="../../../../pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="dir">utils</h1>
+
+<h2 class="wiki plfiles">Prolog files</h2>
+
+<table class="summary">
+<tr><th colspan="3" class="file"><span style="float:left"><a href="apply.html">apply.pl</a></span>&nbsp; -- Apply predicates on a list<span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Aconvlist/3">convlist/3</a></td><td class="summary">Similar to <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/3">maplist/3</a>, but elements for which <code>call(Goal, ElemIn, _)</code> fails are omitted from ListOut.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Aexclude/3">exclude/3</a></td><td class="summary">Filter elements for which Goal fails.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Ainclude/3">include/3</a></td><td class="summary">Filter elements for which Goal succeeds.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Amaplist/2">maplist/2</a></td><td class="summary">True if Goal can successfully be applied on all elements of List.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Amaplist/3">maplist/3</a></td><td class="summary">As <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/2">maplist/2</a>, operating on pairs of elements from two lists.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Amaplist/4">maplist/4</a></td><td class="summary">As <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/2">maplist/2</a>, operating on triples of elements from three lists.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Amaplist/5">maplist/5</a></td><td class="summary">As <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/2">maplist/2</a>, operating on quadruples of elements from four lists.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Apartition/4">partition/4</a></td><td class="summary">Filter elements of List according to Pred.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Apartition/5">partition/5</a></td><td class="summary">Filter List according to Pred in three sets.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Afoldl/4">foldl/4</a></td><td class="summary">Fold a list, using arguments of the list as left argument.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="/pldoc/doc_for?object=apply%3Ascanl/4">scanl/4</a></td><td class="summary">Left scan of list.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr><th colspan="3" class="file"><span style="float:left"><a href="assertruntimeterms.html">assertruntimeterms.pl</a></span><span style="float:right"></span></th></tr>
+<tr><th colspan="3" class="file"><span style="float:left"><a href="getruntimeclauses.html">getruntimeclauses.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="getruntimeclauses.html#beginGetRuntimeClauses/3">beginGetRuntimeClauses/3</a></td><td class="summary"></td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr><th colspan="3" class="file"><span style="float:left"><a href="set.html">set.pl</a></span><span style="float:right"></span></th></tr>
+<tr class="public"><td><a href="set.html#elementOf/2">elementOf/2</a></td><td class="summary">True if Element belongs to Set.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#equivalentTo/2">equivalentTo/2</a></td><td class="summary">True if every element in SetA belongs to SetB (without repeating), with no one left.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#hasIntersection/2">hasIntersection/2</a></td><td class="summary">True if SetA has a non-empty intersection with SetB.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#isSet/1">isSet/1</a></td><td class="summary">True if Set does not contain repeated elements.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#setDiff/3">setDiff/3</a></td><td class="summary">True if Diff is the set difference SetA \ SetB, in a specific order.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#setIsOneOf/2">setIsOneOf/2</a></td><td class="summary">True if Set is equivalent to any set in SetList.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#setUnion/3">setUnion/3</a></td><td class="summary">True if Union is the set union SetA U SetB, in a specific order.</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+<tr class="public"><td><a href="set.html#subsetOf/2">subsetOf/2</a></td><td class="summary">True if every element in Subset belongs to Set (without repeating).</td><td align="right"><span style="white-space: nowrap"></span></td></tr>
+</table>
+
+</body>
+</html>

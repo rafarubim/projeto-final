@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>set.pl</title>
+
+<link rel="stylesheet" type="text/css" href="../../../../pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>set.pl</h1>
+
+<dl>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="isSet/1"><b class="pred">isSet</b><var class="arglist">(++Set:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">True if <var>Set</var> does not contain repeated elements</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="elementOf/2"><b class="pred">elementOf</b><var class="arglist">(?Element:any, ++Set:list)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">True if <var>Element</var> belongs to <var>Set</var>. ?<var>Element</var> returns each set element.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="setDiff/3"><b class="pred">setDiff</b><var class="arglist">(++SetA:list, ++SetB:list, -Diff:list)</var></a> is <b class="det">multi</b></dt><dd class="defbody">True if <var>Diff</var> is the set difference <var>SetA</var> \ <var>SetB</var>, in a specific order.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="setUnion/3"><b class="pred">setUnion</b><var class="arglist">(++SetA:list, ++SetB:list, -Union:list)</var></a> is <b class="det">det</b></dt><dd class="defbody">True if <var>Union</var> is the set union <var>SetA</var> U <var>SetB</var>, in a specific order.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="subsetOf/2"><b class="pred">subsetOf</b><var class="arglist">(?Subset:list, ++Set:list)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">True if every element in <var>Subset</var> belongs to <var>Set</var> (without repeating).
+?<var>Subset</var> returns every sequence of each subset of <var>Set</var>.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="equivalentTo/2"><b class="pred">equivalentTo</b><var class="arglist">(?SetA:list, ++SetB:list)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">True if every element in <var>SetA</var> belongs to <var>SetB</var> (without repeating),
+with no one left. ?<var>SetA</var> returns every sequence of <var>SetB</var>.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="setIsOneOf/2"><b class="pred">setIsOneOf</b><var class="arglist">(?Set:list, ++SetList:list)</var></a> is <b class="det">nondet</b></dt><dd class="defbody">True if <var>Set</var> is equivalent to any set in <var>SetList</var>. Equivalence is the
+the same defined by "equivalentTo". ?<var>Set</var> returns every sequence of
+each equivalent set in <var>SetList</var>.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="hasIntersection/2"><b class="pred">hasIntersection</b><var class="arglist">(+SetA:list, ++SetB:list)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">True if <var>SetA</var> has a non-empty intersection with <var>SetB</var>.</dd>
+</dl>
+
+</body>
+</html>

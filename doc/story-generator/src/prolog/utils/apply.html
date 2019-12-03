@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>apply.pl -- Apply predicates on a list</title>
+
+<link rel="stylesheet" type="text/css" href="../../../../pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>apply.pl -- Apply predicates on a list</h1>
+
+<p>
+This module defines meta-predicates that apply a predicate on all
+members of a list.</p>
+
+<dl class="tags">
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- <code class="nofile">apply_macros.pl</code> provides compile-time expansion for part of this
+library.</dd><dd class="keyword-see">- <a href="http://www.cs.otago.ac.nz/staffpriv/ok/pllib.htm">http://www.cs.otago.ac.nz/staffpriv/ok/pllib.htm</a></dd>
+<dt class="keyword-tbd">To be done</dt><dd class="keyword-tbd">- Add <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=include/4">include/4</a>, <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=include/5">include/5</a>, <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=exclude/4">exclude/4</a>, <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=exclude/5">exclude/5</a></dd>
+</dl>
+
+<dl>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="include/3"><b class="pred">include</b><var class="arglist">(:Goal, +List1, ?List2)</var></a> is <b class="det">det</b></dt><dd class="defbody">Filter elements for which <var>Goal</var> succeeds. True if <var>List2</var> contains
+those elements Xi of <var>List1</var> for which <code>call(Goal, Xi)</code> succeeds.
+
+<dl class="tags">
+<dt class="keyword-see">See also</dt><dd class="keyword-see">- Older versions of SWI-Prolog had <a class="extmanual" href="http://www.swi-prolog.org/pldoc/man?predicate=sublist/3">sublist/3</a> with the same
+arguments and semantics.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="exclude/3"><b class="pred">exclude</b><var class="arglist">(:Goal, +List1, ?List2)</var></a> is <b class="det">det</b></dt><dd class="defbody">Filter elements for which <var>Goal</var> fails. True if <var>List2</var> contains
+those elements Xi of <var>List1</var> for which <code>call(Goal, Xi)</code> fails.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="partition/4"><b class="pred">partition</b><var class="arglist">(:Pred, +List, ?Included, ?Excluded)</var></a> is <b class="det">det</b></dt><dd class="defbody">Filter elements of <var>List</var> according to <var>Pred</var>. True if <var>Included</var>
+contains all elements for which <code>call(Pred, X)</code> succeeds and
+<var>Excluded</var> contains the remaining elements.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="partition/5"><b class="pred">partition</b><var class="arglist">(:Pred, +List, ?Less, ?Equal, ?Greater)</var></a> is <b class="det">semidet</b></dt><dd class="defbody">Filter <var>List</var> according to <var>Pred</var> in three sets. For each element Xi
+of <var>List</var>, its destination is determined by <code>call(Pred, Xi, Place)</code>,
+where Place must be unified to one of <code>&lt;</code>, <code>=</code> or <code>&gt;</code>.
+<var>Pred</var> must be deterministic.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="maplist/2"><b class="pred">maplist</b><var class="arglist">(:Goal, ?List)</var></a></dt><dd class="defbody">True if <var>Goal</var> can successfully be applied on all elements of
+<var>List</var>. Arguments are reordered to gain performance as well as to
+make the predicate deterministic under normal circumstances.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="maplist/3"><b class="pred">maplist</b><var class="arglist">(:Goal, ?List1, ?List2)</var></a></dt><dd class="defbody">As <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/2">maplist/2</a>, operating on pairs of elements from two lists.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="maplist/4"><b class="pred">maplist</b><var class="arglist">(:Goal, ?List1, ?List2, ?List3)</var></a></dt><dd class="defbody">As <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/2">maplist/2</a>, operating on triples of elements from three lists.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="maplist/5"><b class="pred">maplist</b><var class="arglist">(:Goal, ?List1, ?List2, ?List3, ?List4)</var></a></dt><dd class="defbody">As <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/2">maplist/2</a>, operating on quadruples of elements from four
+lists.</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="convlist/3"><b class="pred">convlist</b><var class="arglist">(:Goal, +ListIn, -ListOut)</var></a> is <b class="det">det</b></dt><dd class="defbody">Similar to <a class="builtin" href="http://www.swi-prolog.org/pldoc/man?predicate=maplist/3">maplist/3</a>, but elements for which <code>call(Goal, ElemIn, _)</code>
+fails are omitted from <var>ListOut</var>. For example (using <a class="file" href="../../../../../../../../swi-prolog/swipl/library/yall.pl">library(yall)</a>):
+
+<pre class="code" ext="">
+?- convlist([X,Y]&gt;&gt;(integer(X), Y is X^2),
+            [3, 5, 4.4, 2], L).
+L = [9, 25, 4].</pre>
+
+<dl class="tags">
+<dt class="keyword-compat">Compatibility</dt><dd class="keyword-compat">- Also appears in YAP <code>library(maplist)</code> and SICStus
+<code>library(lists)</code>.</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="foldl/4"><b class="pred">foldl</b><var class="arglist">(:Goal, +List, +V0, -V)</var></a></dt>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="foldl/5"><b class="pred">foldl</b><var class="arglist">(:Goal, +List1, +List2, +V0, -V)</var></a></dt>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="foldl/6"><b class="pred">foldl</b><var class="arglist">(:Goal, +List1, +List2, +List3, +V0, -V)</var></a></dt>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="foldl/7"><b class="pred">foldl</b><var class="arglist">(:Goal, +List1, +List2, +List3, +List4, +V0, -V)</var></a></dt><dd class="defbody">Fold a list, using arguments of the list as left argument. The
+foldl family of predicates is defined by:
+
+<pre class="code" ext="">
+foldl(P, [X11,...,X1n], ..., [Xm1,...,Xmn], V0, Vn) :-
+      P(X11, ..., Xm1, V0, V1),
+      ...
+      P(X1n, ..., Xmn, V', Vn).</pre>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="scanl/4"><b class="pred">scanl</b><var class="arglist">(:Goal, +List, +V0, -Values)</var></a></dt>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="scanl/5"><b class="pred">scanl</b><var class="arglist">(:Goal, +List1, +List2, +V0, -Values)</var></a></dt>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="scanl/6"><b class="pred">scanl</b><var class="arglist">(:Goal, +List1, +List2, +List3, +V0, -Values)</var></a></dt>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="scanl/7"><b class="pred">scanl</b><var class="arglist">(:Goal, +List1, +List2, +List3, +List4, +V0, -Values)</var></a></dt><dd class="defbody">Left scan of list. The scanl family of higher order list
+operations is defined by:
+
+<pre class="code" ext="">
+scanl(P, [X11,...,X1n], ..., [Xm1,...,Xmn], V0,
+      [V0,V1,...,Vn]) :-
+      P(X11, ..., Xm1, V0, V1),
+      ...
+      P(X1n, ..., Xmn, V', Vn).</pre>
+
+</dd>
+</dl>
+
+</body>
+</html>

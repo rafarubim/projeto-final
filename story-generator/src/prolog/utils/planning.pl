@@ -201,7 +201,7 @@
 
 % -------------------- Public predicates
 
-% beginDomainDefinition(++Namespace:atom) is det
+%! beginDomainDefinition(++Namespace:atom) is det
 % 
 % @arg Namespace Could be any atom. Will be the same to be used by the corresponding
 %                "endDomainDefinition".
@@ -210,7 +210,7 @@
 beginDomainDefinition(Namespace) :-
   beginAssertRuntimeTerms(planning, [actionSpec/8, type/1], Namespace).
 
-% endDomainDefinition(++Namespace:atom) is det
+%! endDomainDefinition(++Namespace:atom) is det
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "beginDomainDefinition".
@@ -221,7 +221,7 @@ beginDomainDefinition(Namespace) :-
 endDomainDefinition(Namespace) :-
   endAssertRuntimeTerms(Namespace).
 
-% deleteDomain(++Namespace:atom) is det
+%! deleteDomain(++Namespace:atom) is det
 %
 % This deletes the problem associated to the Namespace, domain, if there's one. It also
 % deletes all local "actionSpec/9" and "type/2" predicates associated to Namespace, which
@@ -231,7 +231,7 @@ deleteDomain(Namespace) :-
   retractall(actionSpec(Namespace,_,_,_,_,_,_,_,_)),
   retractall(type(Namespace, _)).
 
-% beginProblemDefinition(++Namespace:atom) is det
+%! beginProblemDefinition(++Namespace:atom) is det
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "endDomainDefinition".
@@ -242,7 +242,7 @@ beginProblemDefinition(Namespace) :-
   findall(TypeFunctor/1, (planning:type(Namespace, TypeFunctor), (dynamic TypeFunctor/1)), TypePredicates),
   beginAssertRuntimeTerms(planning, TypePredicates, Namespace).
 
-% endProblemDefinition(++Namespace:atom) is nondet
+%! endProblemDefinition(++Namespace:atom) is nondet
 % 
 % @arg Namespace Could be any atom. Must be the same that was used by the corresponding
 %                "endDomainDefinition".
@@ -254,14 +254,14 @@ endProblemDefinition(Namespace) :-
   % Assert local type functor predicates with a Namespace
   endAssertRuntimeTerms(Namespace).
 
-% deleteProblem(++Namespace:atom) is det
+%! deleteProblem(++Namespace:atom) is det
 %
 % This deletes all local "typeFuctor/2" predicates associated to Namespace, for each
 % type/2 definition with a type functor. It effectively deletes a problem.
 deleteProblem(Namespace) :-
   findall(_, deleteOneTypeFunctor(Namespace), _).
 
-% plan(++Namespace:atom, ++Facts:list, +Goals:list, ?Plan:list, ?FinalFacts:list) is nondet
+%! plan(++Namespace:atom, ++Facts:list, +Goals:list, ?Plan:list, ?FinalFacts:list) is nondet
 %
 % @arg Namespace This could be any atom. The Namespace used here should match the
 %                one used in "endDomainDefinition" and "endProblemDefinition".
@@ -277,8 +277,8 @@ plan(Namespace, Facts, Goals, Plan, FinalFacts) :-
   planWithForbiddenStates(Namespace, Facts, Goals, Plan, [Facts], FinalFacts).
 
 
-% planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
-% planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list, AllowedActionsAsFirst:list) is nondet
+%! planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list) is nondet
+%! planAStar(++Namespace:atom, ++Facts:list, +Goals:list, :Heuristic:atom, ?Plan:list, -PlanCost:number, -FinalFacts:list, AllowedActionsAsFirst:list) is nondet
 % 
 % @arg Namespace This could be any atom. The Namespace used here should match the one used in "endDomainDefinition" and "endProblemDefinition".
 %
