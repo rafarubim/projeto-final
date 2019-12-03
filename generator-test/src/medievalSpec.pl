@@ -58,7 +58,7 @@ eventTypeSpec(
   [standsIn(Defeater, Plc), standsIn(Defeated, Plc), \+ kidnappedBy(Defeater, Defeated)],
   [entityClassification(Defeater, character), entityClassification(Defeated, character), Defeater \== Defeated],
   [heroActs],
-  [defeat(0)],
+  [tick(1), defeat(0)],
   [],
   [defeatedBy(Defeated, Defeater)]
 ).

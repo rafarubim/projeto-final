@@ -13,77 +13,147 @@ namespace GeneratorTest
       Generator.StorySpecsFileLocation = "src/storySpec.pl";
       using (var gen = Generator.Instance)
       {
-        var triggersLst = ImmutableList.Create<Trigger>();
-        var triggeredEvents = gen.Query(1, triggersLst);
+        gen.UserPersonality = new UserPersonality(0.7f,0.5f,0.1f,0.8f,-0.1f);
 
-        gen.UserPersonality = new UserPersonality(1,0,1,0,1);
-
-        Console.WriteLine("User personality:  -----------------");
+        Console.WriteLine("User personality Inputed:");
         var personality = gen.UserPersonality;
         Console.WriteLine($"Openess: {personality.Openess}");
         Console.WriteLine($"Conscientiousness: {personality.Conscientiousness}");
         Console.WriteLine($"Extraversion: {personality.Extraversion}");
         Console.WriteLine($"Agreeableness: {personality.Agreeableness}");
         Console.WriteLine($"Neuroticism: {personality.Neuroticism}");
+        Console.WriteLine("");
 
-        Console.WriteLine("Events triggered:  -----------------");
+        var triggersLst = ImmutableList.Create<Trigger>();
+        var triggeredEvents = gen.Query(5, triggersLst);
+
+        Console.WriteLine("tick(1) <---------------------------------------------------------------");
         
         foreach(var ev in triggeredEvents)
         {
           Console.Write("Name: ");
-          Console.WriteLine(ev.Name);
-          Console.Write("Arity: ");
-          Console.WriteLine(ev.Arity);
-          foreach(var arg in ev.Args)
-          {
-            Console.Write("Arg: ");
-            Console.WriteLine((Entity)arg.Term);
-          }
-          Console.Write("OcurrenceTime: ");
+          Console.Write(ev.Name);
+          Console.Write("/ Arity: ");
+          Console.Write(ev.Arity);
+          Console.Write("/ OcurrenceTime: ");
           Console.WriteLine(ev.OcurrenceTime);
+
+          Console.Write("Args: (");
+          foreach (var arg in ev.Args)
+          {
+            Console.Write((Entity)arg.Term);
+            Console.Write(" , ");
+          }
+          Console.WriteLine(")");
           Console.WriteLine();
         }
-        /*
+
+        triggersLst = ImmutableList.Create<Trigger>();
+        triggersLst = triggersLst.Add(new Trigger("villainActs", 5));
+        triggeredEvents = gen.Query(10, triggersLst);
+
+        Console.WriteLine("villainActs(5) <---------------------------------------------------------------");
+
+        foreach (var ev in triggeredEvents)
+        {
+          Console.Write("Name: ");
+          Console.Write(ev.Name);
+          Console.Write("/ Arity: ");
+          Console.Write(ev.Arity);
+          Console.Write("/ OcurrenceTime: ");
+          Console.WriteLine(ev.OcurrenceTime);
+
+          Console.Write("Args: (");
+          foreach (var arg in ev.Args)
+          {
+            Console.Write((Entity)arg.Term);
+            Console.Write(" , ");
+          }
+          Console.WriteLine(")");
+          Console.WriteLine();
+        }
+
+        triggersLst = ImmutableList.Create<Trigger>();
+        triggersLst = triggersLst.Add(new Trigger("heroActs", 10));
+        triggeredEvents = gen.Query(15, triggersLst);
+        Console.WriteLine("heroActs(10) <---------------------------------------------------------------");
+
+        foreach (var ev in triggeredEvents)
+        {
+          Console.Write("Name: ");
+          Console.Write(ev.Name);
+          Console.Write("/ Arity: ");
+          Console.Write(ev.Arity);
+          Console.Write("/ OcurrenceTime: ");
+          Console.WriteLine(ev.OcurrenceTime);
+
+          Console.Write("Args: (");
+          foreach (var arg in ev.Args)
+          {
+            Console.Write((Entity)arg.Term);
+            Console.Write(" , ");
+          }
+          Console.WriteLine(")");
+          Console.WriteLine();
+        }
+        
         var statesSet = gen.States;
-        Console.WriteLine("States:  --------------------------");
+        Console.WriteLine("States  <---------------------------------------------------------------");
         foreach (var st in statesSet)
         {
           Console.Write("Name: ");
-          Console.WriteLine(st.Name);
-          Console.Write("Arity: ");
+          Console.Write(st.Name);
+          Console.Write("/ Arity: ");
           Console.WriteLine(st.Arity);
+          Console.Write("Args: (");
           foreach (var arg in st.Args)
           {
-            Console.Write("Arg: ");
-            Console.WriteLine((Entity)arg.Term);
+            if (arg.Type == typeof(Entity))
+            {
+              Console.Write((Entity)arg.Term);
+            }
+            else
+            {
+              Console.Write(((Scalar)arg.Term).Value);
+            }
+            Console.Write(" , ");
           }
+          Console.WriteLine(")");
           Console.WriteLine();
         }
         
         var termArgs = new StateTerm[]
         {
           new StateTerm(new Entity("cassandra")),
-          new StateTerm(new Entity("capital")),
+          new StateTerm(new Entity("forest")),
           new StateTerm(new Entity("palace"))
         };
         gen.ExecuteEvent("move", termArgs);
 
         statesSet = gen.States;
-        Console.WriteLine("States after forced event:  --------------------------");
+        Console.WriteLine("States after forced \"move(cassandra, forest, palace)\" <---------------------------------------------------------------");
         foreach (var st in statesSet)
         {
           Console.Write("Name: ");
-          Console.WriteLine(st.Name);
-          Console.Write("Arity: ");
+          Console.Write(st.Name);
+          Console.Write("/ Arity: ");
           Console.WriteLine(st.Arity);
+          Console.Write("Args: (");
           foreach (var arg in st.Args)
           {
-            Console.Write("Arg: ");
-            Console.WriteLine((Entity)arg.Term);
+            if (arg.Type == typeof(Entity))
+            {
+              Console.Write((Entity)arg.Term);
+            }
+            else
+            {
+              Console.Write(((Scalar)arg.Term).Value);
+            }
+            Console.Write(" , ");
           }
+          Console.WriteLine(")");
           Console.WriteLine();
         }
-        */
       }
     }
   }
